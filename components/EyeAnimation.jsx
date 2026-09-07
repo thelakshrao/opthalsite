@@ -26,7 +26,8 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
   useEffect(() => {
     const checkBreakpoint = () => {
-      setIsMobile(window.innerWidth < 768);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
     };
     checkBreakpoint();
     window.addEventListener('resize', checkBreakpoint);
@@ -39,15 +40,19 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     return `/eye-animation/${folder}/ezgif-frame-${padded}.webp`;
   }, []);
 
-  // Optimized canvas resolution updating on resize only
   const updateCanvasBounds = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
 
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
+    const targetW = Math.round(rect.width * dpr);
+    const targetH = Math.round(rect.height * dpr);
+
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW;
+      canvas.height = targetH;
+    }
   }, []);
 
   const drawFrameToCanvas = useCallback(
@@ -55,11 +60,15 @@ const EyeAnimation = forwardRef(function EyeAnimation(
       const canvas = canvasRef.current;
       if (!canvas || !imageToDraw || !imageToDraw.complete || imageToDraw.naturalWidth === 0) return;
 
-      const ctx = canvas.getContext('2d', { alpha: false });
+      const ctx = canvas.getContext('2d', { alpha: true });
       if (!ctx) return;
 
       const displayWidth = canvas.width;
       const displayHeight = canvas.height;
+
+      // CRITICAL FIX: Always clear the entire canvas before rendering the next frame
+      // to prevent mobile and desktop frames or consecutive transparent frames from overlapping.
+      ctx.clearRect(0, 0, displayWidth, displayHeight);
 
       const imgW = imageToDraw.naturalWidth || (isMobile ? 1080 : 1280);
       const imgH = imageToDraw.naturalHeight || (isMobile ? 1920 : 720);
@@ -108,6 +117,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
       return direct.img;
     }
 
+    // Fall back to nearest loaded frame if current target frame is still downloading
     for (let i = targetIndex - 1; i >= 0; i--) {
       if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
         return cache[i].img;
