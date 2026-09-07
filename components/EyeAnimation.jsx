@@ -12,7 +12,8 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  const [isMobile, setIsMobile] = useState(false);
+  // Initialize as null to prevent rendering desktop images before device detection
+  const [isMobile, setIsMobile] = useState(null);
   const [initialFrameReady, setInitialFrameReady] = useState(false);
   const [loadedCount, setLoadedCount] = useState(0);
 
@@ -24,11 +25,13 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const isDestroyedRef = useRef(false);
   const currentFrameRef = useRef(0);
 
+  // Measure viewport on mount without triggering an ambient SSR flash
   useEffect(() => {
     const checkBreakpoint = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
     };
+
     checkBreakpoint();
     window.addEventListener('resize', checkBreakpoint);
     return () => window.removeEventListener('resize', checkBreakpoint);
@@ -57,6 +60,8 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
   const drawFrameToCanvas = useCallback(
     (imageToDraw) => {
+      if (isMobile === null) return;
+
       const canvas = canvasRef.current;
       if (!canvas || !imageToDraw || !imageToDraw.complete || imageToDraw.naturalWidth === 0) return;
 
@@ -66,8 +71,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
       const displayWidth = canvas.width;
       const displayHeight = canvas.height;
 
-      // CRITICAL FIX: Always clear the entire canvas before rendering the next frame
-      // to prevent mobile and desktop frames or consecutive transparent frames from overlapping.
+      // Clear the canvas completely before drawing the next frame
       ctx.clearRect(0, 0, displayWidth, displayHeight);
 
       const imgW = imageToDraw.naturalWidth || (isMobile ? 1080 : 1280);
@@ -117,7 +121,6 @@ const EyeAnimation = forwardRef(function EyeAnimation(
       return direct.img;
     }
 
-    // Fall back to nearest loaded frame if current target frame is still downloading
     for (let i = targetIndex - 1; i >= 0; i--) {
       if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
         return cache[i].img;
@@ -151,7 +154,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
   const loadSingleFrame = useCallback(
     (index, mobile, onComplete) => {
-      if (isDestroyedRef.current) return;
+      if (isDestroyedRef.current || mobile === null) return;
       const cacheEntry = framesCacheRef.current[index];
       if (cacheEntry.status === 'loaded' || cacheEntry.status === 'loading') {
         if (onComplete) onComplete();
@@ -189,10 +192,14 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     [getFrameUrl, drawFrameToCanvas]
   );
 
+  // Trigger frame caching and queue loading only once `isMobile` has been evaluated
   useEffect(() => {
+    if (isMobile === null) return;
+
     isDestroyedRef.current = false;
     const cache = framesCacheRef.current;
 
+    // Reset frame cache array to wipe out cross-breakpoint images
     for (let i = 0; i < TOTAL_FRAMES; i++) {
       cache[i] = { img: null, status: 'idle' };
     }
@@ -258,21 +265,23 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     };
   }, [drawFrame, updateCanvasBounds]);
 
-  const placeholderUrl = getFrameUrl(0, isMobile);
+  const placeholderUrl = isMobile !== null ? getFrameUrl(0, isMobile) : null;
 
   return (
     <div
       ref={containerRef}
       className={`relative w-full h-full select-none overflow-hidden ${className}`}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={placeholderUrl}
-        alt="Precision Human Eye Anatomy Frame 1"
-        className={`absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 ${isMobile ? 'object-contain' : 'object-cover'
-          } ${initialFrameReady ? 'opacity-0' : 'opacity-100'}`}
-        aria-hidden="true"
-      />
+      {placeholderUrl && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={placeholderUrl}
+          alt="Precision Human Eye Anatomy Frame 1"
+          className={`absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 ${isMobile ? 'object-contain' : 'object-cover'
+            } ${initialFrameReady ? 'opacity-0' : 'opacity-100'}`}
+          aria-hidden="true"
+        />
+      )}
 
       <canvas
         ref={canvasRef}
