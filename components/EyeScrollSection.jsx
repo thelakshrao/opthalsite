@@ -64,12 +64,8 @@ export default function EyeScrollSection() {
     <section
       ref={containerRef}
       id="hero-animation"
-      className="relative w-full h-[420vh] bg-[#0d0d0d]"
+      className="relative w-full h-[420vh] bg-white"
     >
-      {/* 
-        CRITICAL FIX: Use h-[100dvh] (Dynamic Viewport Height) 
-        to ensure sticky container covers mobile browser address bar shifts
-      */}
       <div className="sticky top-0 h-screen sm:h-[100dvh] w-full overflow-hidden">
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden flex items-center justify-center">
           <EyeAnimation
@@ -78,6 +74,7 @@ export default function EyeScrollSection() {
           />
         </div>
 
+        {/* Cinematic Scrim Overlay */}
         <div
           className="absolute inset-0 w-full h-full z-10 pointer-events-none bg-gradient-to-b from-black/85 via-black/40 to-transparent"
           aria-hidden="true"
