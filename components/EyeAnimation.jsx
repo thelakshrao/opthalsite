@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 
-const TOTAL_FRAMES = 300;
+const DESKTOP_TOTAL_FRAMES = 192;
+const MOBILE_TOTAL_FRAMES = 240;
 const CONCURRENCY_LIMIT = 8;
 
 const EyeAnimation = forwardRef(function EyeAnimation(
@@ -12,26 +13,21 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Initialize as null to prevent rendering desktop images before device detection
-  const [isMobile, setIsMobile] = useState(null);
-  const [initialFrameReady, setInitialFrameReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [loadedCount, setLoadedCount] = useState(0);
 
-  const framesCacheRef = useRef(
-    Array.from({ length: TOTAL_FRAMES }, () => ({ img: null, status: 'idle' }))
-  );
+  const totalFrames = isMobile ? MOBILE_TOTAL_FRAMES : DESKTOP_TOTAL_FRAMES;
+
+  const framesCacheRef = useRef([]);
   const activeDownloadsRef = useRef(0);
   const priorityQueueRef = useRef([]);
   const isDestroyedRef = useRef(false);
   const currentFrameRef = useRef(0);
 
-  // Measure viewport on mount without triggering an ambient SSR flash
   useEffect(() => {
     const checkBreakpoint = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
+      setIsMobile(window.innerWidth < 768);
     };
-
     checkBreakpoint();
     window.addEventListener('resize', checkBreakpoint);
     return () => window.removeEventListener('resize', checkBreakpoint);
@@ -40,14 +36,14 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const getFrameUrl = useCallback((index, mobile) => {
     const padded = String(index + 1).padStart(3, '0');
     const folder = mobile ? 'mobile' : 'desktop';
-    return `/eye-animation/${folder}/ezgif-frame-${padded}.webp`;
+    return `/eye-animation/${folder}/ezgif-frame-${padded}.png`;
   }, []);
 
   const updateCanvasBounds = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.max(window.devicePixelRatio || 1, 2);
 
     const targetW = Math.round(rect.width * dpr);
     const targetH = Math.round(rect.height * dpr);
@@ -60,8 +56,6 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
   const drawFrameToCanvas = useCallback(
     (imageToDraw) => {
-      if (isMobile === null) return;
-
       const canvas = canvasRef.current;
       if (!canvas || !imageToDraw || !imageToDraw.complete || imageToDraw.naturalWidth === 0) return;
 
@@ -71,11 +65,10 @@ const EyeAnimation = forwardRef(function EyeAnimation(
       const displayWidth = canvas.width;
       const displayHeight = canvas.height;
 
-      // Clear the canvas completely before drawing the next frame
       ctx.clearRect(0, 0, displayWidth, displayHeight);
 
-      const imgW = imageToDraw.naturalWidth || (isMobile ? 1080 : 1280);
-      const imgH = imageToDraw.naturalHeight || (isMobile ? 1920 : 720);
+      const imgW = imageToDraw.naturalWidth || (isMobile ? 1080 : 1920);
+      const imgH = imageToDraw.naturalHeight || (isMobile ? 1920 : 1080);
       const targetRatio = imgW / imgH;
       const currentRatio = displayWidth / displayHeight;
 
@@ -108,33 +101,36 @@ const EyeAnimation = forwardRef(function EyeAnimation(
       }
 
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'medium';
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(imageToDraw, drawX, drawY, drawW, drawH);
     },
     [isMobile]
   );
 
-  const getRenderableImage = useCallback((targetIndex) => {
-    const cache = framesCacheRef.current;
-    const direct = cache[targetIndex];
-    if (direct && direct.status === 'loaded' && direct.img && direct.img.complete) {
-      return direct.img;
-    }
-
-    for (let i = targetIndex - 1; i >= 0; i--) {
-      if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
-        return cache[i].img;
+  const getRenderableImage = useCallback(
+    (targetIndex) => {
+      const cache = framesCacheRef.current;
+      const direct = cache[targetIndex];
+      if (direct && direct.status === 'loaded' && direct.img && direct.img.complete) {
+        return direct.img;
       }
-    }
 
-    for (let i = targetIndex + 1; i < TOTAL_FRAMES; i++) {
-      if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
-        return cache[i].img;
+      for (let i = targetIndex - 1; i >= 0; i--) {
+        if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
+          return cache[i].img;
+        }
       }
-    }
 
-    return null;
-  }, []);
+      for (let i = targetIndex + 1; i < totalFrames; i++) {
+        if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
+          return cache[i].img;
+        }
+      }
+
+      return null;
+    },
+    [totalFrames]
+  );
 
   const drawFrame = useCallback(
     (index) => {
@@ -150,13 +146,14 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
   useImperativeHandle(ref, () => ({
     drawFrame,
+    getTotalFrames: () => totalFrames,
   }));
 
   const loadSingleFrame = useCallback(
     (index, mobile, onComplete) => {
-      if (isDestroyedRef.current || mobile === null) return;
+      if (isDestroyedRef.current) return;
       const cacheEntry = framesCacheRef.current[index];
-      if (cacheEntry.status === 'loaded' || cacheEntry.status === 'loading') {
+      if (!cacheEntry || cacheEntry.status === 'loaded' || cacheEntry.status === 'loading') {
         if (onComplete) onComplete();
         return;
       }
@@ -171,9 +168,6 @@ const EyeAnimation = forwardRef(function EyeAnimation(
         cacheEntry.status = 'loaded';
         setLoadedCount((prev) => prev + 1);
 
-        if (index === 0) {
-          setInitialFrameReady(true);
-        }
         if (index === currentFrameRef.current || index === 0) {
           drawFrameToCanvas(img);
         }
@@ -192,19 +186,15 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     [getFrameUrl, drawFrameToCanvas]
   );
 
-  // Trigger frame caching and queue loading only once `isMobile` has been evaluated
   useEffect(() => {
-    if (isMobile === null) return;
-
     isDestroyedRef.current = false;
-    const cache = framesCacheRef.current;
 
-    // Reset frame cache array to wipe out cross-breakpoint images
-    for (let i = 0; i < TOTAL_FRAMES; i++) {
-      cache[i] = { img: null, status: 'idle' };
-    }
+    framesCacheRef.current = Array.from({ length: totalFrames }, () => ({
+      img: null,
+      status: 'idle',
+    }));
+
     setLoadedCount(0);
-    setInitialFrameReady(false);
     updateCanvasBounds();
 
     loadSingleFrame(0, isMobile, () => {
@@ -212,7 +202,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     });
 
     const remainingIndices = [];
-    for (let i = 1; i < TOTAL_FRAMES; i++) {
+    for (let i = 1; i < totalFrames; i++) {
       remainingIndices.push(i);
     }
     priorityQueueRef.current = remainingIndices;
@@ -237,13 +227,13 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     return () => {
       isDestroyedRef.current = true;
     };
-  }, [isMobile, loadSingleFrame, drawFrame, updateCanvasBounds]);
+  }, [isMobile, totalFrames, loadSingleFrame, drawFrame, updateCanvasBounds]);
 
   useEffect(() => {
-    if (loadedCount === TOTAL_FRAMES && onLoaded) {
+    if (loadedCount === totalFrames && onLoaded) {
       onLoaded();
     }
-  }, [loadedCount, onLoaded]);
+  }, [loadedCount, totalFrames, onLoaded]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -265,24 +255,11 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     };
   }, [drawFrame, updateCanvasBounds]);
 
-  const placeholderUrl = isMobile !== null ? getFrameUrl(0, isMobile) : null;
-
   return (
     <div
       ref={containerRef}
       className={`relative w-full h-full select-none overflow-hidden ${className}`}
     >
-      {placeholderUrl && (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={placeholderUrl}
-          alt="Precision Human Eye Anatomy Frame 1"
-          className={`absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 ${isMobile ? 'object-contain' : 'object-cover'
-            } ${initialFrameReady ? 'opacity-0' : 'opacity-100'}`}
-          aria-hidden="true"
-        />
-      )}
-
       <canvas
         ref={canvasRef}
         className="w-full h-full block touch-pan-y"

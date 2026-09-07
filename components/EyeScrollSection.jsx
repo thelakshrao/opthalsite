@@ -3,8 +3,6 @@
 import React, { useRef, useEffect } from 'react';
 import EyeAnimation from './EyeAnimation';
 
-const TOTAL_FRAMES = 300;
-
 export default function EyeScrollSection() {
   const containerRef = useRef(null);
   const animationRef = useRef(null);
@@ -32,9 +30,11 @@ export default function EyeScrollSection() {
     const renderLoop = () => {
       currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.15;
 
+      const maxFrames = animationRef.current ? animationRef.current.getTotalFrames() : 192;
+
       const frameIndex = Math.min(
-        TOTAL_FRAMES - 1,
-        Math.max(0, Math.floor(currentProgressRef.current * TOTAL_FRAMES))
+        maxFrames - 1,
+        Math.max(0, Math.floor(currentProgressRef.current * maxFrames))
       );
 
       if (frameIndex !== lastDrawnFrameRef.current) {
@@ -74,7 +74,6 @@ export default function EyeScrollSection() {
           />
         </div>
 
-        {/* Cinematic Scrim Overlay */}
         <div
           className="absolute inset-0 w-full h-full z-10 pointer-events-none bg-gradient-to-b from-black/85 via-black/40 to-transparent"
           aria-hidden="true"
