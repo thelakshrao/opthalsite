@@ -29,9 +29,7 @@ export default function EyeScrollSection() {
       }
     };
 
-    // Continuous LERP loop for silky-smooth interpolation
     const renderLoop = () => {
-      // Smooth lerp factor (0.15 gives a responsive, smooth catch-up)
       currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.15;
 
       const frameIndex = Math.min(
@@ -52,7 +50,6 @@ export default function EyeScrollSection() {
     window.addEventListener('scroll', updateScrollProgress, { passive: true });
     window.addEventListener('resize', updateScrollProgress, { passive: true });
 
-    // Initial run
     updateScrollProgress();
     rafId = requestAnimationFrame(renderLoop);
 
@@ -67,10 +64,14 @@ export default function EyeScrollSection() {
     <section
       ref={containerRef}
       id="hero-animation"
-      className="relative w-full h-[420vh] bg-black"
+      className="relative w-full h-[420vh] bg-[#0d0d0d]"
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
-        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+      {/* 
+        CRITICAL FIX: Use h-[100dvh] (Dynamic Viewport Height) 
+        to ensure sticky container covers mobile browser address bar shifts
+      */}
+      <div className="sticky top-0 h-screen sm:h-[100dvh] w-full overflow-hidden">
+        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden flex items-center justify-center">
           <EyeAnimation
             ref={animationRef}
             className="w-full h-full"
@@ -78,11 +79,11 @@ export default function EyeScrollSection() {
         </div>
 
         <div
-          className="absolute inset-0 w-full h-full z-10 pointer-events-none bg-gradient-to-b from-black/85 via-black/45 to-black/65"
+          className="absolute inset-0 w-full h-full z-10 pointer-events-none bg-gradient-to-b from-black/85 via-black/40 to-transparent"
           aria-hidden="true"
         />
 
-        <div className="relative z-20 pointer-events-none text-center px-4 pt-24 sm:pt-28 md:pt-32 flex flex-col items-center max-w-4xl mx-auto">
+        <div className="relative z-20 pointer-events-none text-center px-4 pt-20 sm:pt-28 md:pt-32 flex flex-col items-center max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/20 text-white/90 text-[10px] sm:text-[11px] font-mono tracking-widest uppercase mb-3 backdrop-blur-md shadow-md">
             <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
             <span>Sub-Micron Microsurgery • Refractive & Vitreoretinal Institute</span>
