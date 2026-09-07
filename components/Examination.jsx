@@ -10,13 +10,11 @@ function useEyeDots(width = 360, height = 180, step = 9) {
         const cx = width / 2;
         const cy = height / 2;
 
-        // Horizontal vesica/eye dimensions
         const rx = width * 0.45;
         const ry = height * 0.42;
 
         for (let x = 0; x <= width; x += step) {
             for (let y = 0; y <= height; y += step) {
-                // Elliptical distance from center
                 const dx = (x - cx) / rx;
                 const dy = (y - cy) / ry;
                 const distSq = dx * dx + dy * dy;
@@ -113,14 +111,16 @@ export default function Examination() {
                 />
             </motion.div>
 
+            {/* Desktop Only: Top-Left Eye Dot Pattern */}
             <EyeDotPattern
-                className="absolute -top-8 -left-16 sm:top-24 sm:-left-8 z-10 block opacity-80 sm:opacity-95"
+                className="hidden sm:block absolute sm:top-24 sm:-left-8 z-10 opacity-95"
                 width={360}
                 height={180}
             />
 
+            {/* Desktop Only: Bottom-Right Eye Dot Pattern */}
             <EyeDotPattern
-                className="absolute -bottom-8 -right-16 sm:-bottom-4 sm:-right-8 z-10 block opacity-80 sm:opacity-95"
+                className="hidden sm:block absolute sm:-bottom-4 sm:-right-8 z-10 opacity-95"
                 width={360}
                 height={180}
             />
