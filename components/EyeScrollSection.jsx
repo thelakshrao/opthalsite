@@ -30,8 +30,8 @@ export default function EyeScrollSection() {
     };
 
     const renderLoop = () => {
-      // Increased LERP factor from 0.15 -> 0.45 for instant, tight scroll tracking
-      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.45;
+      // 0.35 factor ensures immediate scroll synchronization without sluggish lagging
+      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.35;
 
       const frameIndex = Math.min(
         TOTAL_FRAMES - 1,
@@ -65,7 +65,7 @@ export default function EyeScrollSection() {
     <section
       ref={containerRef}
       id="hero-animation"
-      className="relative w-full h-[320vh] bg-white" // Reduced section height from 420vh to 320vh for faster progression
+      className="relative w-full h-[420vh] bg-white"
     >
       <div className="sticky top-0 h-screen sm:h-[100dvh] w-full overflow-hidden">
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden flex items-center justify-center">

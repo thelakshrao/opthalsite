@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 
 const TOTAL_FRAMES = 300;
-const CONCURRENCY_LIMIT = 16; // Increased from 8 for faster batch preloading
+const CONCURRENCY_LIMIT = 12;
 
 const EyeAnimation = forwardRef(function EyeAnimation(
   { className = '', onFrameChange, onLoaded },
@@ -42,7 +42,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for optimal memory throughput
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const targetW = Math.round(rect.width * dpr);
     const targetH = Math.round(rect.height * dpr);
@@ -73,16 +73,17 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
       let drawW, drawH, drawX, drawY;
 
+      // FIXED: Constant sizing container logic prevents zoom expansion on scroll
       if (currentRatio > targetRatio) {
-        drawW = displayWidth;
-        drawH = displayWidth / targetRatio;
-        drawX = 0;
-        drawY = (displayHeight - drawH) / 2;
-      } else {
         drawH = displayHeight;
         drawW = displayHeight * targetRatio;
         drawX = (displayWidth - drawW) / 2;
         drawY = 0;
+      } else {
+        drawW = displayWidth;
+        drawH = displayWidth / targetRatio;
+        drawX = 0;
+        drawY = (displayHeight - drawH) / 2;
       }
 
       ctx.imageSmoothingEnabled = true;
@@ -99,8 +100,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
       return direct.img;
     }
 
-    // Nearby frame lookup for zero-stall fallbacks
-    for (let offset = 1; offset <= 10; offset++) {
+    for (let offset = 1; offset <= 8; offset++) {
       const prev = targetIndex - offset;
       if (prev >= 0 && cache[prev]?.status === 'loaded' && cache[prev]?.img?.complete) {
         return cache[prev].img;
