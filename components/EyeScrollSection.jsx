@@ -3,6 +3,8 @@
 import React, { useRef, useEffect } from 'react';
 import EyeAnimation from './EyeAnimation';
 
+const TOTAL_FRAMES = 300;
+
 export default function EyeScrollSection() {
   const containerRef = useRef(null);
   const animationRef = useRef(null);
@@ -28,13 +30,12 @@ export default function EyeScrollSection() {
     };
 
     const renderLoop = () => {
-      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.15;
-
-      const maxFrames = animationRef.current ? animationRef.current.getTotalFrames() : 192;
+      // Increased LERP factor from 0.15 -> 0.45 for instant, tight scroll tracking
+      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.45;
 
       const frameIndex = Math.min(
-        maxFrames - 1,
-        Math.max(0, Math.floor(currentProgressRef.current * maxFrames))
+        TOTAL_FRAMES - 1,
+        Math.max(0, Math.floor(currentProgressRef.current * TOTAL_FRAMES))
       );
 
       if (frameIndex !== lastDrawnFrameRef.current) {
@@ -64,7 +65,7 @@ export default function EyeScrollSection() {
     <section
       ref={containerRef}
       id="hero-animation"
-      className="relative w-full h-[420vh] bg-white"
+      className="relative w-full h-[320vh] bg-white" // Reduced section height from 420vh to 320vh for faster progression
     >
       <div className="sticky top-0 h-screen sm:h-[100dvh] w-full overflow-hidden">
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden flex items-center justify-center">
@@ -74,6 +75,7 @@ export default function EyeScrollSection() {
           />
         </div>
 
+        {/* Cinematic Scrim Overlay */}
         <div
           className="absolute inset-0 w-full h-full z-10 pointer-events-none bg-gradient-to-b from-black/85 via-black/40 to-transparent"
           aria-hidden="true"

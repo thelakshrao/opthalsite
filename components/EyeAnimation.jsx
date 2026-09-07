@@ -2,9 +2,8 @@
 
 import React, { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 
-const DESKTOP_TOTAL_FRAMES = 192;
-const MOBILE_TOTAL_FRAMES = 240;
-const CONCURRENCY_LIMIT = 8;
+const TOTAL_FRAMES = 300;
+const CONCURRENCY_LIMIT = 16; // Increased from 8 for faster batch preloading
 
 const EyeAnimation = forwardRef(function EyeAnimation(
   { className = '', onFrameChange, onLoaded },
@@ -16,9 +15,9 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const [isMobile, setIsMobile] = useState(false);
   const [loadedCount, setLoadedCount] = useState(0);
 
-  const totalFrames = isMobile ? MOBILE_TOTAL_FRAMES : DESKTOP_TOTAL_FRAMES;
-
-  const framesCacheRef = useRef([]);
+  const framesCacheRef = useRef(
+    Array.from({ length: TOTAL_FRAMES }, () => ({ img: null, status: 'idle' }))
+  );
   const activeDownloadsRef = useRef(0);
   const priorityQueueRef = useRef([]);
   const isDestroyedRef = useRef(false);
@@ -36,14 +35,14 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const getFrameUrl = useCallback((index, mobile) => {
     const padded = String(index + 1).padStart(3, '0');
     const folder = mobile ? 'mobile' : 'desktop';
-    return `/eye-animation/${folder}/ezgif-frame-${padded}.png`;
+    return `/eye-animation/${folder}/ezgif-frame-${padded}.webp`;
   }, []);
 
   const updateCanvasBounds = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.max(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for optimal memory throughput
 
     const targetW = Math.round(rect.width * dpr);
     const targetH = Math.round(rect.height * dpr);
@@ -67,70 +66,53 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
       ctx.clearRect(0, 0, displayWidth, displayHeight);
 
-      const imgW = imageToDraw.naturalWidth || (isMobile ? 1080 : 1920);
-      const imgH = imageToDraw.naturalHeight || (isMobile ? 1920 : 1080);
+      const imgW = imageToDraw.naturalWidth || (isMobile ? 1080 : 1280);
+      const imgH = imageToDraw.naturalHeight || (isMobile ? 1920 : 720);
       const targetRatio = imgW / imgH;
       const currentRatio = displayWidth / displayHeight;
 
       let drawW, drawH, drawX, drawY;
 
-      if (isMobile) {
-        if (currentRatio > targetRatio) {
-          drawH = displayHeight;
-          drawW = displayHeight * targetRatio;
-          drawX = (displayWidth - drawW) / 2;
-          drawY = 0;
-        } else {
-          drawW = displayWidth;
-          drawH = displayWidth / targetRatio;
-          drawX = 0;
-          drawY = (displayHeight - drawH) / 2;
-        }
+      if (currentRatio > targetRatio) {
+        drawW = displayWidth;
+        drawH = displayWidth / targetRatio;
+        drawX = 0;
+        drawY = (displayHeight - drawH) / 2;
       } else {
-        if (currentRatio > targetRatio) {
-          drawW = displayWidth;
-          drawH = displayWidth / targetRatio;
-          drawX = 0;
-          drawY = (displayHeight - drawH) / 2;
-        } else {
-          drawH = displayHeight;
-          drawW = displayHeight * targetRatio;
-          drawX = (displayWidth - drawW) / 2;
-          drawY = 0;
-        }
+        drawH = displayHeight;
+        drawW = displayHeight * targetRatio;
+        drawX = (displayWidth - drawW) / 2;
+        drawY = 0;
       }
 
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
+      ctx.imageSmoothingQuality = 'medium';
       ctx.drawImage(imageToDraw, drawX, drawY, drawW, drawH);
     },
     [isMobile]
   );
 
-  const getRenderableImage = useCallback(
-    (targetIndex) => {
-      const cache = framesCacheRef.current;
-      const direct = cache[targetIndex];
-      if (direct && direct.status === 'loaded' && direct.img && direct.img.complete) {
-        return direct.img;
-      }
+  const getRenderableImage = useCallback((targetIndex) => {
+    const cache = framesCacheRef.current;
+    const direct = cache[targetIndex];
+    if (direct && direct.status === 'loaded' && direct.img && direct.img.complete) {
+      return direct.img;
+    }
 
-      for (let i = targetIndex - 1; i >= 0; i--) {
-        if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
-          return cache[i].img;
-        }
+    // Nearby frame lookup for zero-stall fallbacks
+    for (let offset = 1; offset <= 10; offset++) {
+      const prev = targetIndex - offset;
+      if (prev >= 0 && cache[prev]?.status === 'loaded' && cache[prev]?.img?.complete) {
+        return cache[prev].img;
       }
-
-      for (let i = targetIndex + 1; i < totalFrames; i++) {
-        if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
-          return cache[i].img;
-        }
+      const next = targetIndex + offset;
+      if (next < TOTAL_FRAMES && cache[next]?.status === 'loaded' && cache[next]?.img?.complete) {
+        return cache[next].img;
       }
+    }
 
-      return null;
-    },
-    [totalFrames]
-  );
+    return null;
+  }, []);
 
   const drawFrame = useCallback(
     (index) => {
@@ -146,7 +128,6 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
   useImperativeHandle(ref, () => ({
     drawFrame,
-    getTotalFrames: () => totalFrames,
   }));
 
   const loadSingleFrame = useCallback(
@@ -188,12 +169,11 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
   useEffect(() => {
     isDestroyedRef.current = false;
+    const cache = framesCacheRef.current;
 
-    framesCacheRef.current = Array.from({ length: totalFrames }, () => ({
-      img: null,
-      status: 'idle',
-    }));
-
+    for (let i = 0; i < TOTAL_FRAMES; i++) {
+      cache[i] = { img: null, status: 'idle' };
+    }
     setLoadedCount(0);
     updateCanvasBounds();
 
@@ -202,7 +182,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     });
 
     const remainingIndices = [];
-    for (let i = 1; i < totalFrames; i++) {
+    for (let i = 1; i < TOTAL_FRAMES; i++) {
       remainingIndices.push(i);
     }
     priorityQueueRef.current = remainingIndices;
@@ -227,13 +207,13 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     return () => {
       isDestroyedRef.current = true;
     };
-  }, [isMobile, totalFrames, loadSingleFrame, drawFrame, updateCanvasBounds]);
+  }, [isMobile, loadSingleFrame, drawFrame, updateCanvasBounds]);
 
   useEffect(() => {
-    if (loadedCount === totalFrames && onLoaded) {
+    if (loadedCount === TOTAL_FRAMES && onLoaded) {
       onLoaded();
     }
-  }, [loadedCount, totalFrames, onLoaded]);
+  }, [loadedCount, onLoaded]);
 
   useEffect(() => {
     const container = containerRef.current;
