@@ -30,8 +30,7 @@ export default function EyeScrollSection() {
     };
 
     const renderLoop = () => {
-      // 0.35 factor ensures immediate scroll synchronization without sluggish lagging
-      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.35;
+      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.15;
 
       const frameIndex = Math.min(
         TOTAL_FRAMES - 1,

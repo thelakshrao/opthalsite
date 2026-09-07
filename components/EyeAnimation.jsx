@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 
 const TOTAL_FRAMES = 300;
-const CONCURRENCY_LIMIT = 12;
+const CONCURRENCY_LIMIT = 8;
 
 const EyeAnimation = forwardRef(function EyeAnimation(
   { className = '', onFrameChange, onLoaded },
@@ -23,6 +23,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const isDestroyedRef = useRef(false);
   const currentFrameRef = useRef(0);
 
+  // Sync breakpoint state
   useEffect(() => {
     const checkBreakpoint = () => {
       setIsMobile(window.innerWidth < 768);
@@ -42,7 +43,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = window.devicePixelRatio || 1;
 
     const targetW = Math.round(rect.width * dpr);
     const targetH = Math.round(rect.height * dpr);
@@ -73,17 +74,17 @@ const EyeAnimation = forwardRef(function EyeAnimation(
 
       let drawW, drawH, drawX, drawY;
 
-      // FIXED: Constant sizing container logic prevents zoom expansion on scroll
+      // Cover scaling math to ensure full bleed without empty borders
       if (currentRatio > targetRatio) {
-        drawH = displayHeight;
-        drawW = displayHeight * targetRatio;
-        drawX = (displayWidth - drawW) / 2;
-        drawY = 0;
-      } else {
         drawW = displayWidth;
         drawH = displayWidth / targetRatio;
         drawX = 0;
         drawY = (displayHeight - drawH) / 2;
+      } else {
+        drawH = displayHeight;
+        drawW = displayHeight * targetRatio;
+        drawX = (displayWidth - drawW) / 2;
+        drawY = 0;
       }
 
       ctx.imageSmoothingEnabled = true;
@@ -100,14 +101,16 @@ const EyeAnimation = forwardRef(function EyeAnimation(
       return direct.img;
     }
 
-    for (let offset = 1; offset <= 8; offset++) {
-      const prev = targetIndex - offset;
-      if (prev >= 0 && cache[prev]?.status === 'loaded' && cache[prev]?.img?.complete) {
-        return cache[prev].img;
+    // Direct fallback search to nearby loaded frames
+    for (let i = targetIndex - 1; i >= 0; i--) {
+      if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
+        return cache[i].img;
       }
-      const next = targetIndex + offset;
-      if (next < TOTAL_FRAMES && cache[next]?.status === 'loaded' && cache[next]?.img?.complete) {
-        return cache[next].img;
+    }
+
+    for (let i = targetIndex + 1; i < TOTAL_FRAMES; i++) {
+      if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
+        return cache[i].img;
       }
     }
 
@@ -134,7 +137,7 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     (index, mobile, onComplete) => {
       if (isDestroyedRef.current) return;
       const cacheEntry = framesCacheRef.current[index];
-      if (!cacheEntry || cacheEntry.status === 'loaded' || cacheEntry.status === 'loading') {
+      if (cacheEntry.status === 'loaded' || cacheEntry.status === 'loading') {
         if (onComplete) onComplete();
         return;
       }
