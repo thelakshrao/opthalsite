@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, ShieldCheck, Activity, Layers, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 
 function useEyeDots(width = 360, height = 180, step = 10) {
@@ -140,7 +140,13 @@ export default function Services() {
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16">
 
           {/* LEFT: MACRO EYE GRAPHIC */}
-          <div className="relative shrink-0 flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="relative shrink-0 flex items-center justify-center"
+          >
             <div className="absolute -inset-4 sm:-inset-6 rounded-full bg-white/5 blur-xl pointer-events-none" />
 
             <div
@@ -169,10 +175,16 @@ export default function Services() {
                 className="h-5 sm:h-8 w-auto object-contain"
               />
             </div>
-          </div>
+          </motion.div>
 
           {/* RIGHT: 2X2 GRID OF MAIN SERVICES */}
-          <div className="w-full lg:max-w-2xl text-left">
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
+            className="w-full lg:max-w-2xl text-left"
+          >
             <div className="inline-block px-3 py-1 rounded-full bg-white/10 text-white text-[10px] sm:text-[11px] font-mono tracking-widest uppercase mb-3 border border-white/15">
               Core Ophthalmic Specialties
             </div>
@@ -185,17 +197,33 @@ export default function Services() {
               Sub-micron surgical precision across four core disciplines of modern vision care.
             </p>
 
-            {/* 2X2 GRID FOR MOBILE & DESKTOP */}
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+            {/* 2X2 GRID FOR MOBILE & DESKTOP -- cards stagger in one by one */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={{
+                hidden: {},
+                visible: { transition: { staggerChildren: 0.08 } },
+              }}
+              className="grid grid-cols-2 gap-2.5 sm:gap-4"
+            >
               {SERVICES_DATA.map((service, index) => {
                 const IconComponent = service.icon;
                 const isSelected = selectedService === service.id;
 
                 return (
-                  <div
+                  <motion.div
                     key={service.id}
+                    variants={{
+                      hidden: { opacity: 0, y: 16 },
+                      visible: { opacity: 1, y: 0 },
+                    }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    whileHover={{ y: -3 }}
+                    whileTap={{ scale: 0.96 }}
                     onClick={() => setSelectedService(service.id)}
-                    className={`relative p-3.5 sm:p-5 rounded-2xl cursor-pointer transition-all duration-200 flex flex-col justify-between border active:scale-95 ${isSelected
+                    className={`relative p-3.5 sm:p-5 rounded-2xl cursor-pointer transition-colors duration-200 flex flex-col justify-between border ${isSelected
                       ? 'bg-neutral-900 border-white text-white shadow-lg ring-1 ring-white/40'
                       : 'bg-neutral-950 border-white/10 text-neutral-300 hover:border-white/30'
                       }`}
@@ -225,22 +253,29 @@ export default function Services() {
                       </span>
                       <ArrowUpRight className={`w-3 h-3 transition-transform ${isSelected ? 'rotate-45 text-white' : 'text-neutral-500'}`} />
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
 
-        {/* SELECTED SERVICE DETAILS PANEL */}
-        {selectedService && (
-          <div className="mt-8 sm:mt-12 max-w-7xl mx-auto p-5 sm:p-10 rounded-2xl sm:rounded-3xl bg-neutral-950 border border-white/15 relative z-10">
-            {(() => {
-              const active = SERVICES_DATA.find((s) => s.id === selectedService);
-              if (!active) return null;
-              const Icon = active.icon;
+        {/* SELECTED SERVICE DETAILS PANEL -- crossfades/slides in whenever the selection changes */}
+        <AnimatePresence mode="wait">
+          {selectedService && (() => {
+            const active = SERVICES_DATA.find((s) => s.id === selectedService);
+            if (!active) return null;
+            const Icon = active.icon;
 
-              return (
+            return (
+              <motion.div
+                key={active.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                className="mt-8 sm:mt-12 max-w-7xl mx-auto p-5 sm:p-10 rounded-2xl sm:rounded-3xl bg-neutral-950 border border-white/15 relative z-10"
+              >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                   <div className="lg:col-span-7">
                     <div className="flex items-center gap-2.5 mb-2.5">
@@ -271,18 +306,20 @@ export default function Services() {
                   </div>
 
                   <div className="lg:col-span-5 flex flex-col gap-3">
-                    <a
+                    <motion.a
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       href="#consultation-patient"
                       className="w-full py-3.5 rounded-full bg-white text-black text-center text-xs sm:text-sm font-bold tracking-wide hover:bg-neutral-200 transition-colors shadow-md"
                     >
                       Book Consultation for {active.title} →
-                    </a>
+                    </motion.a>
                   </div>
                 </div>
-              );
-            })()}
-          </div>
-        )}
+              </motion.div>
+            );
+          })()}
+        </AnimatePresence>
       </section>
 
     </div>
