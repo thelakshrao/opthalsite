@@ -2,27 +2,46 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const pathname = usePathname();
+    const isHome = pathname === '/';
 
+    // type: 'anchor'  -> scrolls to a section on the homepage (href is the section id, e.g. '#hero-animation')
+    // type: 'page'    -> navigates to a real route (href is a real Next.js page, e.g. '/about')
     const navLinks = [
-        { name: 'Home', href: '#hero-animation' },
-        { name: 'About us', href: '#photography-showcase' },
-        { name: 'Services', href: '#photography-showcase' },
-        { name: 'Specialties', href: '#reconstruction-specialties' },
-        { name: 'Credibility', href: '#surgical-credibility' },
-        { name: 'Patient Journey', href: '#consultation-patient' },
+        { name: 'Home', href: '#hero-animation', type: 'anchor' },
+        { name: 'About us', href: '/about', type: 'page' },
+        { name: 'Services', href: '#photography-showcase', type: 'anchor' },
+        { name: 'Specialties', href: '#reconstruction-specialties', type: 'anchor' },
+        { name: 'Credibility', href: '#surgical-credibility', type: 'anchor' },
+        { name: 'Our Journey', href: '#patient-journey', type: 'anchor' },
     ];
 
-    const handleScroll = (e, href) => {
-        e.preventDefault();
-        setIsOpen(false);
-        const targetElement = document.querySelector(href);
-        if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth' });
+    const bookHref = '#consultation-patient';
+
+    const handleAnchorClick = (e, hash) => {
+        // If we're already on the homepage, scroll smoothly without a full navigation.
+        if (isHome) {
+            e.preventDefault();
+            setIsOpen(false);
+            const targetElement = document.querySelector(hash);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        } else {
+            // Not on the homepage: let the Link navigate to "/" + hash,
+            // the browser/Next.js will land on the homepage and jump to the section.
+            setIsOpen(false);
         }
+    };
+
+    const handlePageClick = () => {
+        setIsOpen(false);
     };
 
     return (
@@ -34,8 +53,11 @@ export default function Navbar() {
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 h-full flex items-center justify-between">
 
-                {/* Left: Eyevora Logo */}
-                <a href="#hero-animation" onClick={(e) => handleScroll(e, '#hero-animation')} className="flex items-center shrink-0">
+                <Link
+                    href={isHome ? '#hero-animation' : '/#hero-animation'}
+                    onClick={(e) => handleAnchorClick(e, '#hero-animation')}
+                    className="flex items-center shrink-0"
+                >
                     <Image
                         src="/images/logo/eyevora2.png"
                         alt="Eyevora Logo"
@@ -44,40 +66,50 @@ export default function Navbar() {
                         className="h-7 sm:h-8 w-auto object-contain"
                         priority
                     />
-                </a>
+                </Link>
 
-                {/* Center: Desktop Links with Motion Hover Effects */}
                 <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs font-medium tracking-wide text-neutral-300">
                     {navLinks.map((link) => (
-                        <motion.a
+                        <motion.div
                             key={link.name}
-                            href={link.href}
-                            onClick={(e) => handleScroll(e, link.href)}
                             whileHover={{ scale: 1.08, color: '#ffffff' }}
                             whileTap={{ scale: 0.95 }}
                             transition={{ duration: 0.2, ease: 'easeInOut' }}
-                            className="py-1 cursor-pointer transition-colors"
+                            className="py-1"
                         >
-                            {link.name}
-                        </motion.a>
+                            {link.type === 'page' ? (
+                                <Link href={link.href} onClick={handlePageClick} className="cursor-pointer transition-colors">
+                                    {link.name}
+                                </Link>
+                            ) : (
+                                <Link
+                                    href={isHome ? link.href : `/${link.href}`}
+                                    onClick={(e) => handleAnchorClick(e, link.href)}
+                                    className="cursor-pointer transition-colors"
+                                >
+                                    {link.name}
+                                </Link>
+                            )}
+                        </motion.div>
                     ))}
                 </nav>
 
-                {/* Right: Desktop CTA Button */}
                 <div className="hidden lg:flex items-center">
-                    <motion.a
+                    <motion.div
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        href="#consultation-patient"
-                        onClick={(e) => handleScroll(e, '#consultation-patient')}
-                        className="px-5 py-2.5 rounded-full bg-white text-black text-xs font-semibold tracking-wide shadow-md hover:bg-neutral-200 transition-colors"
                     >
-                        Book Consultation
-                    </motion.a>
+                        <Link
+                            href={isHome ? bookHref : `/${bookHref}`}
+                            onClick={(e) => handleAnchorClick(e, bookHref)}
+                            className="px-5 py-2.5 rounded-full bg-white text-black text-xs font-semibold tracking-wide shadow-md hover:bg-neutral-200 transition-colors inline-block"
+                        >
+                            Book Consultation
+                        </Link>
+                    </motion.div>
                 </div>
 
-                {/* Mobile Hamburger Toggle */}
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
@@ -97,29 +129,39 @@ export default function Navbar() {
 
             </div>
 
-            {/* Mobile Drawer (Instant rendering for mobile touch efficiency) */}
             {isOpen && (
                 <div className="lg:hidden bg-[#0a0a0a] border-b border-white/10 px-6 py-6 space-y-4">
                     <nav className="flex flex-col gap-4 text-sm font-medium text-neutral-300">
                         {navLinks.map((link) => (
-                            <a
-                                key={link.name}
-                                href={link.href}
-                                onClick={(e) => handleScroll(e, link.href)}
-                                className="hover:text-white transition-colors"
-                            >
-                                {link.name}
-                            </a>
+                            link.type === 'page' ? (
+                                <Link
+                                    key={link.name}
+                                    href={link.href}
+                                    onClick={handlePageClick}
+                                    className="hover:text-white transition-colors"
+                                >
+                                    {link.name}
+                                </Link>
+                            ) : (
+                                <Link
+                                    key={link.name}
+                                    href={isHome ? link.href : `/${link.href}`}
+                                    onClick={(e) => handleAnchorClick(e, link.href)}
+                                    className="hover:text-white transition-colors"
+                                >
+                                    {link.name}
+                                </Link>
+                            )
                         ))}
                     </nav>
                     <div className="pt-4 border-t border-white/10">
-                        <a
-                            href="#consultation-patient"
-                            onClick={(e) => handleScroll(e, '#consultation-patient')}
+                        <Link
+                            href={isHome ? bookHref : `/${bookHref}`}
+                            onClick={(e) => handleAnchorClick(e, bookHref)}
                             className="block w-full text-center px-5 py-3 rounded-full bg-white text-black text-xs font-semibold tracking-wide"
                         >
                             Book Consultation
-                        </a>
+                        </Link>
                     </div>
                 </div>
             )}

@@ -2,6 +2,31 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
+
+const fadeUp = {
+    hidden: { opacity: 0, y: 24 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const fadeLeft = {
+    hidden: { opacity: 0, x: -30 },
+    show: { opacity: 1, x: 0, transition: { duration: 0.7, ease: 'easeOut' } },
+};
+
+const fadeRight = {
+    hidden: { opacity: 0, x: 30 },
+    show: { opacity: 1, x: 0, transition: { duration: 0.7, ease: 'easeOut' } },
+};
+
+const stagger = {
+    hidden: {},
+    show: {
+        transition: {
+            staggerChildren: 0.15,
+        },
+    },
+};
 
 export default function Credibility() {
     return (
@@ -12,7 +37,13 @@ export default function Credibility() {
         >
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-                    <div className="lg:col-span-5 flex justify-center">
+                    <motion.div
+                        className="lg:col-span-5 flex justify-center"
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true, amount: 0.3 }}
+                        variants={fadeLeft}
+                    >
                         <div className="relative w-full max-w-md aspect-2/3 sm:aspect-3/4 rounded-3xl overflow-hidden ring-1 ring-white/20 shadow-2xl bg-neutral-950">
                             <Image
                                 src="/images/photos/doctor.webp"
@@ -28,56 +59,93 @@ export default function Credibility() {
                                 <div className="text-sm font-bold text-white mt-0.5">A Clean, Safe Space to Heal</div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
-                    <div className="lg:col-span-7">
-                        <div className="inline-block px-3.5 py-1 rounded-full bg-white/10 text-white text-[11px] font-mono tracking-widest uppercase mb-4 border border-white/15">
+                    <motion.div
+                        className="lg:col-span-7"
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true, amount: 0.3 }}
+                        variants={stagger}
+                    >
+                        <motion.div
+                            className="inline-block px-3.5 py-1 rounded-full bg-white/10 text-white text-[11px] font-mono tracking-widest uppercase mb-4 border border-white/15"
+                            variants={fadeUp}
+                        >
                             Why Patients Trust Us
-                        </div>
+                        </motion.div>
 
-                        <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+                        <motion.h2
+                            className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight"
+                            variants={fadeUp}
+                        >
                             CARE YOU CAN TRUST
-                        </h2>
+                        </motion.h2>
 
-                        <h3 className="mt-2 text-base sm:text-lg font-semibold text-neutral-300">
+                        <motion.h3
+                            className="mt-2 text-base sm:text-lg font-semibold text-neutral-300"
+                            variants={fadeUp}
+                        >
                             No Shortcuts. No Guesswork. Just Careful, Precise Surgery.
-                        </h3>
+                        </motion.h3>
 
-                        <p className="mt-5 text-base sm:text-lg text-neutral-300 font-light leading-relaxed">
+                        <motion.p
+                            className="mt-5 text-base sm:text-lg text-neutral-300 font-light leading-relaxed"
+                            variants={fadeUp}
+                        >
                             Great eye surgery comes down to the small details. Our surgeons work in spotless, carefully controlled operating rooms, using powerful microscopes and live imaging to see exactly what they&apos;re doing at every step. Every movement is planned and precise, so you can feel confident from the moment you walk in.
-                        </p>
+                        </motion.p>
 
-                        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
+                        <motion.div
+                            className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4"
+                            variants={stagger}
+                        >
+                            <motion.div
+                                className="p-4 rounded-xl bg-neutral-900 border border-neutral-800"
+                                variants={fadeUp}
+                                whileHover={{ y: -4 }}
+                            >
                                 <div className="text-xs font-bold uppercase tracking-wider text-white">Spotless Operating Rooms</div>
                                 <p className="text-xs text-neutral-400 mt-1 font-light leading-relaxed">
                                     Filtered air and a controlled environment keep the risk of infection extremely low.
                                 </p>
-                            </div>
+                            </motion.div>
 
-                            <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
+                            <motion.div
+                                className="p-4 rounded-xl bg-neutral-900 border border-neutral-800"
+                                variants={fadeUp}
+                                whileHover={{ y: -4 }}
+                            >
                                 <div className="text-xs font-bold uppercase tracking-wider text-white">Highly Trained Surgeons</div>
                                 <p className="text-xs text-neutral-400 mt-1 font-light leading-relaxed">
                                     Our team trained at some of the world&apos;s top eye hospitals, including Wilmer, Moorfields, and Bascom Palmer.
                                 </p>
-                            </div>
+                            </motion.div>
 
-                            <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
+                            <motion.div
+                                className="p-4 rounded-xl bg-neutral-900 border border-neutral-800"
+                                variants={fadeUp}
+                                whileHover={{ y: -4 }}
+                            >
                                 <div className="text-xs font-bold uppercase tracking-wider text-white">Steady, Precise Guidance</div>
                                 <p className="text-xs text-neutral-400 mt-1 font-light leading-relaxed">
                                     Smart tracking technology automatically adjusts for any small eye movement during surgery.
                                 </p>
-                            </div>
+                            </motion.div>
 
-                            <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
+                            <motion.div
+                                className="p-4 rounded-xl bg-neutral-900 border border-neutral-800"
+                                variants={fadeUp}
+                                whileHover={{ y: -4 }}
+                            >
                                 <div className="text-xs font-bold uppercase tracking-wider text-white">Consistently Great Results</div>
                                 <p className="text-xs text-neutral-400 mt-1 font-light leading-relaxed">
                                     99.8% of our patients reach their vision goals, above international safety standards.
                                 </p>
-                            </div>
-                        </div>
+                            </motion.div>
+                        </motion.div>
 
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </section>

@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Zap, Scissors, ShieldCheck, Sparkles } from 'lucide-react';
+import { Zap, Scissors, ShieldCheck, Sparkles, HeartHandshake } from 'lucide-react';
 import EyeAnimation from './EyeAnimation';
 
 const TOTAL_FRAMES = 300;
@@ -177,13 +177,13 @@ export default function EyeScrollSection() {
             </span>
             <span className="hidden sm:inline text-neutral-400">•</span>
             <span className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-xs">
-              <Scissors className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-black" />
-              100% Blade-Free
+              <ShieldCheck className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-black" />
+              Proven Safe & Effective
             </span>
             <span className="hidden sm:inline text-neutral-400">•</span>
             <span className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-xs">
-              <ShieldCheck className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-black" />
-              Proven Safe & Effective
+              <HeartHandshake className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-black" />
+              Insurance Support
             </span>
           </motion.div>
 

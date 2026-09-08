@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { ArrowUpRight } from 'lucide-react';
 
 function useEyeDots(width = 360, height = 180, step = 10) {
     return useMemo(() => {
@@ -76,6 +77,23 @@ function EyeDotPattern({ className = '', width = 360, height = 180 }) {
     );
 }
 
+function ViewAllServicesBadge({ position = 'top' }) {
+    const positionClasses =
+        position === 'top'
+            ? 'top-4 right-4'
+            : 'bottom-4 right-4';
+
+    return (
+        <a
+            href="/service"
+            className={`absolute ${positionClasses} z-20 inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-white/60 text-black text-[11px] sm:text-xs font-semibold tracking-wide shadow-md hover:bg-white transition-colors`}
+        >
+            View All Services
+            <ArrowUpRight className="w-3 h-3" />
+        </a>
+    );
+}
+
 export default function Examination() {
     const [formSubmitted, setFormSubmitted] = useState(false);
     const [formData, setFormData] = useState({
@@ -93,9 +111,8 @@ export default function Examination() {
     return (
         <section
             id="consultation-patient"
-            className="relative w-full pt-16 sm:pt-24 pb-28 sm:pb-36 bg-[#ffffff] text-black z-20 overflow-hidden transform-gpu"
+            className="relative w-full pt-16 sm:pt-24 pb-28 sm:pb-26 bg-[#ffffff] text-black z-20 overflow-hidden transform-gpu"
         >
-            {/* Top Logo Container */}
             <div
                 className="absolute top-0 inset-x-0 h-28 pointer-events-none bg-gradient-to-b from-transparent via-white/80 to-white z-30 flex items-center justify-center pt-2"
                 aria-hidden="true"
@@ -109,7 +126,6 @@ export default function Examination() {
                 />
             </div>
 
-            {/* Desktop-Only Static Dot Pattern */}
             <EyeDotPattern
                 className="hidden md:block absolute md:top-24 md:-left-8 z-10 opacity-80"
                 width={360}
@@ -125,7 +141,6 @@ export default function Examination() {
             <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 relative z-40 pt-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
-                    {/* Left Column: LASIK Details */}
                     <motion.div
                         initial={{ opacity: 0, x: -30 }}
                         whileInView={{ opacity: 1, x: 0 }}
@@ -146,7 +161,7 @@ export default function Examination() {
                             LASIK (Laser-Assisted In Situ Keratomileusis) reshapes the cornea using a precise, computer-guided excimer laser—correcting nearsightedness, farsightedness, and astigmatism. The procedure is quick, typically performed with numbing eye drops rather than general anesthesia, and most patients return to normal daily activities within a day or two.
                         </p>
 
-                        <div className="relative mt-8 rounded-2xl overflow-hidden border border-neutral-200 shadow-lg aspect-video sm:aspect-4/3 w-full bg-neutral-50">
+                        <div className="relative mt-8 rounded-2xl overflow-hidden border border-neutral-200 shadow-lg aspect-[16/10] sm:aspect-[16/9] w-full bg-neutral-50">
                             <Image
                                 src="/images/photos/lasik.webp"
                                 alt="LASIK laser eye surgery procedure"
@@ -155,9 +170,19 @@ export default function Examination() {
                                 quality={75}
                                 className="object-cover object-[78%_45%] scale-[1.35]"
                             />
+                            <ViewAllServicesBadge position="top" />
                         </div>
 
-                        <div className="mt-8 grid grid-cols-2 gap-4">
+                        <div className="mt-6 p-4 rounded-xl bg-black text-white">
+                            <div className="text-[11px] font-bold uppercase tracking-wider text-white/70">
+                                Machine We Use For Surgery
+                            </div>
+                            <p className="text-sm mt-1.5 font-light leading-relaxed">
+                                Your procedure is performed with a <strong className="font-bold">computer-guided excimer laser</strong>, with corneal flaps created by a <strong className="font-bold">femtosecond laser</strong> and reshaping mapped by a <strong className="font-bold">topography-guided system</strong>.
+                            </p>
+                        </div>
+
+                        <div className="mt-6 grid grid-cols-2 gap-4">
                             <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200">
                                 <div className="text-xs font-bold uppercase tracking-wider text-black">Quick Procedure</div>
                                 <div className="text-xs text-neutral-500 mt-1 font-light">Typically completed in under 15 minutes for both eyes.</div>
@@ -169,7 +194,6 @@ export default function Examination() {
                         </div>
                     </motion.div>
 
-                    {/* Right Column: Form Intake */}
                     <motion.div
                         initial={{ opacity: 0, x: 30 }}
                         whileInView={{ opacity: 1, x: 0 }}
@@ -177,7 +201,7 @@ export default function Examination() {
                         transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
                         className="lg:col-span-6"
                     >
-                        <div className="p-8 sm:p-12 rounded-3xl bg-neutral-50 border border-neutral-200 shadow-sm">
+                        <div className="p-2 sm:p-12 rounded-3xl bg-neutral-50 border border-neutral-200 shadow-sm">
 
                             <div className="mb-8">
                                 <span className="text-[11px] font-mono uppercase tracking-widest text-neutral-500">
@@ -285,14 +309,82 @@ export default function Examination() {
                             <Image
                                 src="/images/logo/eyevora2.png"
                                 alt="Eyevora Logo"
-                                width={160}
+                                width={260}
                                 height={40}
-                                className="h-6 sm:h-8 w-auto object-contain brightness-0"
+                                className="h-6 sm:h-18 w-auto object-contain brightness-0"
                             />
                         </div>
                     </motion.div>
 
                 </div>
+
+                <div className="mt-10 sm:mt-14 pt-8 sm:pt-10 border-t border-neutral-200">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true, margin: '-50px' }}
+                            transition={{ duration: 0.7, ease: 'easeOut' }}
+                            className="lg:col-span-6 order-2 lg:order-1"
+                        >
+                            <div className="relative rounded-2xl overflow-hidden border border-neutral-200 shadow-lg aspect-[16/10] sm:aspect-[16/9] w-full max-w-md mx-auto lg:mx-0 bg-neutral-50">
+                                <Image
+                                    src="/images/photos/cataract.webp"
+                                    alt="Cataract surgery procedure"
+                                    fill
+                                    sizes="(max-width: 640px) 100vw, 40vw"
+                                    quality={75}
+                                    className="object-cover scale-[1.25]"
+                                />
+                                <ViewAllServicesBadge position="bottom" />
+                            </div>
+
+                            <div className="mt-6 p-4 rounded-xl bg-black text-white max-w-md mx-auto lg:mx-0">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-white/70">
+                                    Machine We Use For Surgery
+                                </div>
+                                <p className="text-sm mt-1.5 font-light leading-relaxed">
+                                    Lens removal is performed with a <strong className="font-bold">phacoemulsification system</strong>, with key steps guided by a <strong className="font-bold">femtosecond laser platform</strong> for precise, computer-planned incisions.
+                                </p>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, x: 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true, margin: '-50px' }}
+                            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
+                            className="lg:col-span-6 order-1 lg:order-2 flex flex-col justify-center"
+                        >
+                            <div className="inline-block self-start px-3 py-1 rounded-full bg-neutral-100 text-neutral-600 text-[11px] font-mono tracking-widest uppercase mb-4 border border-neutral-200">
+                                Cataract Surgery
+                            </div>
+
+                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-black leading-tight">
+                                Restore The Clarity <br />
+                                You Used To See.
+                            </h2>
+
+                            <p className="mt-5 text-base sm:text-lg text-neutral-600 font-light leading-relaxed">
+                                Cataract surgery removes the eye's clouded natural lens and replaces it with a clear, custom-calculated intraocular lens (IOL). Our surgeons use micro-incision phacoemulsification, breaking up the cataract with focused ultrasound energy through an opening small enough that most patients need no stitches at all.
+                            </p>
+
+                            <div className="mt-8 grid grid-cols-2 gap-4">
+                                <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200">
+                                    <div className="text-xs font-bold uppercase tracking-wider text-black">Stitch-Free</div>
+                                    <div className="text-xs text-neutral-500 mt-1 font-light">Micro-incisions are typically self-sealing.</div>
+                                </div>
+                                <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200">
+                                    <div className="text-xs font-bold uppercase tracking-wider text-black">Custom Lens Fit</div>
+                                    <div className="text-xs text-neutral-500 mt-1 font-light">IOL selection matched to your daily vision needs.</div>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                    </div>
+                </div>
+
             </div>
         </section>
     );
