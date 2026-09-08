@@ -2,9 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 
-function useEyeDots(width = 360, height = 180, step = 9) {
+function useEyeDots(width = 360, height = 180, step = 10) {
     return useMemo(() => {
         const dots = [];
         const cx = width / 2;
@@ -17,8 +16,9 @@ function useEyeDots(width = 360, height = 180, step = 9) {
             for (let y = 0; y <= height; y += step) {
                 const dx = (x - cx) / rx;
                 const dy = (y - cy) / ry;
+                const distSq = dx * dx + dy * dy;
 
-                if (dx * dx + dy * dy <= 1) {
+                if (distSq <= 1) {
                     const distFromCenter = Math.hypot(x - cx, y - cy);
                     const isIris = distFromCenter < height * 0.18;
                     dots.push({ x, y, iris: isIris });
@@ -47,26 +47,15 @@ function EyeDotPattern({ className = '', width = 360, height = 180 }) {
                 {dots.map((d, i) => {
                     const baseRadius = d.iris ? 2.5 : 1.5;
                     const baseOpacity = d.iris ? 0.85 : 0.45;
-                    const animDelay = (i % 12) * 0.15;
 
                     return (
-                        <motion.circle
+                        <circle
                             key={i}
                             cx={d.x}
                             cy={d.y}
                             r={baseRadius}
                             fill={d.iris ? '#000000' : '#525252'}
-                            initial={{ opacity: baseOpacity, scale: 1 }}
-                            animate={{
-                                opacity: [baseOpacity, baseOpacity * 0.3, baseOpacity],
-                                scale: [1, 1.25, 1],
-                            }}
-                            transition={{
-                                duration: 2.8,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                                delay: animDelay,
-                            }}
+                            opacity={baseOpacity}
                         />
                     );
                 })}
@@ -94,6 +83,7 @@ export default function Examination() {
             id="consultation-patient"
             className="relative w-full pt-16 sm:pt-24 pb-28 sm:pb-36 bg-[#ffffff] text-black z-20 overflow-hidden transform-gpu"
         >
+            {/* Top Logo Container */}
             <div
                 className="absolute top-0 inset-x-0 h-28 pointer-events-none bg-gradient-to-b from-transparent via-white/80 to-white z-30 flex items-center justify-center pt-2"
                 aria-hidden="true"
@@ -107,15 +97,15 @@ export default function Examination() {
                 />
             </div>
 
-            {/* Desktop Only Animated Dots */}
+            {/* Desktop-Only Static Dot Pattern */}
             <EyeDotPattern
-                className="hidden lg:block absolute lg:top-24 lg:-left-8 z-10 opacity-95"
+                className="hidden md:block absolute md:top-24 md:-left-8 z-10 opacity-80"
                 width={360}
                 height={180}
             />
 
             <EyeDotPattern
-                className="hidden lg:block absolute lg:-bottom-4 lg:-right-8 z-10 opacity-95"
+                className="hidden md:block absolute md:-bottom-4 md:-right-8 z-10 opacity-80"
                 width={360}
                 height={180}
             />
@@ -124,13 +114,7 @@ export default function Examination() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
                     {/* Left Column: LASIK Details */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: '-50px' }}
-                        transition={{ duration: 0.7, ease: 'easeOut' }}
-                        className="lg:col-span-6 flex flex-col justify-center relative z-20"
-                    >
+                    <div className="lg:col-span-6 flex flex-col justify-center relative z-20">
                         <div className="inline-block self-start px-3 py-1 rounded-full bg-neutral-100 text-neutral-600 text-[11px] font-mono tracking-widest uppercase mb-4 border border-neutral-200">
                             LASIK Eye Surgery
                         </div>
@@ -149,7 +133,8 @@ export default function Examination() {
                                 src="/images/photos/lasik.webp"
                                 alt="LASIK laser eye surgery procedure"
                                 fill
-                                sizes="(max-width: 1024px) 100vw, 50vw"
+                                sizes="(max-width: 640px) 100vw, 50vw"
+                                quality={75}
                                 className="object-cover object-[78%_45%] scale-[1.35]"
                             />
                         </div>
@@ -164,16 +149,10 @@ export default function Examination() {
                                 <div className="text-xs text-neutral-500 mt-1 font-light">Most patients notice clearer vision within a day or two.</div>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
-                    {/* Right Column: Intake Form */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: '-50px' }}
-                        transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
-                        className="lg:col-span-6"
-                    >
+                    {/* Right Column: Form Intake */}
+                    <div className="lg:col-span-6">
                         <div className="p-8 sm:p-12 rounded-3xl bg-neutral-50 border border-neutral-200 shadow-sm">
 
                             <div className="mb-8">
@@ -261,14 +240,12 @@ export default function Examination() {
                                         />
                                     </div>
 
-                                    <motion.button
-                                        whileHover={{ scale: 1.01 }}
-                                        whileTap={{ scale: 0.98 }}
+                                    <button
                                         type="submit"
-                                        className="w-full py-3.5 rounded-full bg-black text-white text-xs sm:text-sm font-semibold tracking-wide hover:bg-neutral-800 transition-colors shadow-xs"
+                                        className="w-full py-3.5 rounded-full bg-black text-white text-xs sm:text-sm font-semibold tracking-wide hover:bg-neutral-800 active:scale-[0.99] transition-all shadow-xs"
                                     >
                                         Request Priority Consultation
-                                    </motion.button>
+                                    </button>
 
                                     <p className="text-[11px] text-neutral-500 text-center font-light mt-3">
                                         Confidential & HIPAA compliant. We do not share your medical information.
@@ -287,7 +264,7 @@ export default function Examination() {
                                 className="h-6 sm:h-8 w-auto object-contain brightness-0"
                             />
                         </div>
-                    </motion.div>
+                    </div>
 
                 </div>
             </div>

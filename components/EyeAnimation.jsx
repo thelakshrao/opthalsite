@@ -12,14 +12,14 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Detect isMobile synchronously on first render (client only) instead of via
-  // useEffect. This avoids one wasted render where isMobile is null and the
-  // placeholder <img> can't render yet -- that gap was the source of the
-  // black flash on reload.
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false; // SSR-safe default
-    return window.innerWidth < 768;
-  });
+  // isMobile MUST start as null so server and client render identically on
+  // the very first pass (no window access during render). Computing this
+  // with window.innerWidth in the initializer caused a server/client
+  // mismatch -- server always saw `undefined window` (desktop default),
+  // while the client immediately computed the real value, so whichever
+  // <img src> got rendered differed between the two -> hydration error.
+  // The actual value is set safely in the effect below, right after mount.
+  const [isMobile, setIsMobile] = useState(null);
 
   const [initialFrameReady, setInitialFrameReady] = useState(false);
   const [loadedCount, setLoadedCount] = useState(0);
@@ -32,12 +32,14 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const isDestroyedRef = useRef(false);
   const currentFrameRef = useRef(0);
 
-  // Keep isMobile correct on resize/orientation change (breakpoint crossing)
+  // Determine isMobile on mount (client-only, runs after hydration is
+  // already complete) and keep it correct on resize/orientation change.
   useEffect(() => {
     const checkBreakpoint = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile((prev) => (prev !== mobile ? mobile : prev));
     };
+    checkBreakpoint();
     window.addEventListener('resize', checkBreakpoint);
     return () => window.removeEventListener('resize', checkBreakpoint);
   }, []);
@@ -52,14 +54,22 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+
+    // Cap the effective devicePixelRatio, especially on mobile. Modern
+    // phones report DPR of 3 (sometimes higher), which means 3x the pixels
+    // to draw on every single frame for zero perceptible sharpness gain at
+    // arm's length on a small screen. Capping this is one of the biggest
+    // wins for mobile canvas performance.
+    const rawDpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(rawDpr, isMobile ? 1.5 : 2);
+
     const targetW = Math.round(rect.width * dpr);
     const targetH = Math.round(rect.height * dpr);
     if (canvas.width !== targetW || canvas.height !== targetH) {
       canvas.width = targetW;
       canvas.height = targetH;
     }
-  }, []);
+  }, [isMobile]);
 
   const drawFrameToCanvas = useCallback(
     (imageToDraw) => {
@@ -178,8 +188,8 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     [getFrameUrl, drawFrameToCanvas]
   );
 
-  // Trigger frame caching and queue loading. isMobile is now available
-  // synchronously on the client, so this fires on the very first effect pass.
+  // Trigger frame caching and queue loading once isMobile has been
+  // determined (immediately after mount, from the effect above).
   useEffect(() => {
     if (isMobile === null) return;
     isDestroyedRef.current = false;
@@ -252,26 +262,39 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     };
   }, [drawFrame, updateCanvasBounds]);
 
-  const placeholderUrl = isMobile !== null ? getFrameUrl(0, isMobile) : null;
+  // Both placeholders are always in the DOM -- identical on server and
+  // client -- and CSS (md: breakpoint) decides which one is visible. This
+  // is what avoids the hydration mismatch while still painting instantly
+  // (CSS resolves before any JS runs, so there's no black-flash gap).
+  const desktopFrameUrl = getFrameUrl(0, false);
+  const mobileFrameUrl = getFrameUrl(0, true);
+  const placeholderOpacityClass = initialFrameReady ? 'opacity-0' : 'opacity-100';
 
   return (
     <div
       ref={containerRef}
       className={`relative w-full h-full select-none overflow-hidden ${className}`}
     >
-      {placeholderUrl && (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={placeholderUrl}
-          alt="Precision Human Eye Anatomy Frame 1"
-          fetchPriority="high"
-          loading="eager"
-          decoding="async"
-          className={`absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 object-cover ${initialFrameReady ? 'opacity-0' : 'opacity-100'
-            }`}
-          aria-hidden="true"
-        />
-      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={mobileFrameUrl}
+        alt="Precision Human Eye Anatomy Frame 1"
+        fetchPriority="high"
+        loading="eager"
+        decoding="async"
+        className={`block md:hidden absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 object-cover ${placeholderOpacityClass}`}
+        aria-hidden="true"
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={desktopFrameUrl}
+        alt="Precision Human Eye Anatomy Frame 1"
+        fetchPriority="high"
+        loading="eager"
+        decoding="async"
+        className={`hidden md:block absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 object-cover ${placeholderOpacityClass}`}
+        aria-hidden="true"
+      />
       <canvas
         ref={canvasRef}
         className="w-full h-full block touch-pan-y"
