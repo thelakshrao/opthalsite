@@ -12,8 +12,15 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Initialize as null to prevent rendering desktop images before device detection
-  const [isMobile, setIsMobile] = useState(null);
+  // Detect isMobile synchronously on first render (client only) instead of via
+  // useEffect. This avoids one wasted render where isMobile is null and the
+  // placeholder <img> can't render yet -- that gap was the source of the
+  // black flash on reload.
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false; // SSR-safe default
+    return window.innerWidth < 768;
+  });
+
   const [initialFrameReady, setInitialFrameReady] = useState(false);
   const [loadedCount, setLoadedCount] = useState(0);
 
@@ -25,14 +32,12 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const isDestroyedRef = useRef(false);
   const currentFrameRef = useRef(0);
 
-  // Measure viewport on mount without triggering an ambient SSR flash
+  // Keep isMobile correct on resize/orientation change (breakpoint crossing)
   useEffect(() => {
     const checkBreakpoint = () => {
       const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
+      setIsMobile((prev) => (prev !== mobile ? mobile : prev));
     };
-
-    checkBreakpoint();
     window.addEventListener('resize', checkBreakpoint);
     return () => window.removeEventListener('resize', checkBreakpoint);
   }, []);
@@ -48,10 +53,8 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-
     const targetW = Math.round(rect.width * dpr);
     const targetH = Math.round(rect.height * dpr);
-
     if (canvas.width !== targetW || canvas.height !== targetH) {
       canvas.width = targetW;
       canvas.height = targetH;
@@ -61,10 +64,8 @@ const EyeAnimation = forwardRef(function EyeAnimation(
   const drawFrameToCanvas = useCallback(
     (imageToDraw) => {
       if (isMobile === null) return;
-
       const canvas = canvasRef.current;
       if (!canvas || !imageToDraw || !imageToDraw.complete || imageToDraw.naturalWidth === 0) return;
-
       const ctx = canvas.getContext('2d', { alpha: true });
       if (!ctx) return;
 
@@ -108,19 +109,16 @@ const EyeAnimation = forwardRef(function EyeAnimation(
     if (direct && direct.status === 'loaded' && direct.img && direct.img.complete) {
       return direct.img;
     }
-
     for (let i = targetIndex - 1; i >= 0; i--) {
       if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
         return cache[i].img;
       }
     }
-
     for (let i = targetIndex + 1; i < TOTAL_FRAMES; i++) {
       if (cache[i] && cache[i].status === 'loaded' && cache[i].img && cache[i].img.complete) {
         return cache[i].img;
       }
     }
-
     return null;
   }, []);
 
@@ -148,51 +146,52 @@ const EyeAnimation = forwardRef(function EyeAnimation(
         if (onComplete) onComplete();
         return;
       }
-
       cacheEntry.status = 'loading';
+
       const img = new Image();
       img.decoding = 'async';
-
+      // Give frame 0 fetch priority since it's the critical first paint;
+      // everything else can load at the browser's default priority.
+      if (index === 0 && 'fetchPriority' in img) {
+        img.fetchPriority = 'high';
+      }
       img.onload = () => {
         if (isDestroyedRef.current) return;
         cacheEntry.img = img;
         cacheEntry.status = 'loaded';
         setLoadedCount((prev) => prev + 1);
-
         if (index === 0) {
           setInitialFrameReady(true);
         }
         if (index === currentFrameRef.current || index === 0) {
           drawFrameToCanvas(img);
         }
-
         if (onComplete) onComplete();
       };
-
       img.onerror = () => {
         if (isDestroyedRef.current) return;
         cacheEntry.status = 'error';
         if (onComplete) onComplete();
       };
-
       img.src = getFrameUrl(index, mobile);
     },
     [getFrameUrl, drawFrameToCanvas]
   );
 
-  // Trigger frame caching and queue loading only once `isMobile` has been evaluated
+  // Trigger frame caching and queue loading. isMobile is now available
+  // synchronously on the client, so this fires on the very first effect pass.
   useEffect(() => {
     if (isMobile === null) return;
-
     isDestroyedRef.current = false;
-    const cache = framesCacheRef.current;
 
+    const cache = framesCacheRef.current;
     // Reset frame cache array to wipe out cross-breakpoint images
     for (let i = 0; i < TOTAL_FRAMES; i++) {
       cache[i] = { img: null, status: 'idle' };
     }
     setLoadedCount(0);
     setInitialFrameReady(false);
+
     updateCanvasBounds();
 
     loadSingleFrame(0, isMobile, () => {
@@ -265,12 +264,14 @@ const EyeAnimation = forwardRef(function EyeAnimation(
         <img
           src={placeholderUrl}
           alt="Precision Human Eye Anatomy Frame 1"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
           className={`absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 object-cover ${initialFrameReady ? 'opacity-0' : 'opacity-100'
             }`}
           aria-hidden="true"
         />
       )}
-
       <canvas
         ref={canvasRef}
         className="w-full h-full block touch-pan-y"

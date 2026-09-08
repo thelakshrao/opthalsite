@@ -17,9 +17,8 @@ function useEyeDots(width = 360, height = 180, step = 9) {
             for (let y = 0; y <= height; y += step) {
                 const dx = (x - cx) / rx;
                 const dy = (y - cy) / ry;
-                const distSq = dx * dx + dy * dy;
 
-                if (distSq <= 1) {
+                if (dx * dx + dy * dy <= 1) {
                     const distFromCenter = Math.hypot(x - cx, y - cy);
                     const isIris = distFromCenter < height * 0.18;
                     dots.push({ x, y, iris: isIris });
@@ -93,12 +92,9 @@ export default function Examination() {
     return (
         <section
             id="consultation-patient"
-            className="relative w-full pt-16 sm:pt-24 pb-28 sm:pb-36 bg-[#ffffff] text-black z-20 overflow-hidden"
+            className="relative w-full pt-16 sm:pt-24 pb-28 sm:pb-36 bg-[#ffffff] text-black z-20 overflow-hidden transform-gpu"
         >
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+            <div
                 className="absolute top-0 inset-x-0 h-28 pointer-events-none bg-gradient-to-b from-transparent via-white/80 to-white z-30 flex items-center justify-center pt-2"
                 aria-hidden="true"
             >
@@ -109,18 +105,17 @@ export default function Examination() {
                     height={40}
                     className="h-6 sm:h-8 w-auto object-contain brightness-0"
                 />
-            </motion.div>
+            </div>
 
-            {/* Desktop Only: Top-Left Eye Dot Pattern */}
+            {/* Desktop Only Animated Dots */}
             <EyeDotPattern
-                className="hidden sm:block absolute sm:top-24 sm:-left-8 z-10 opacity-95"
+                className="hidden lg:block absolute lg:top-24 lg:-left-8 z-10 opacity-95"
                 width={360}
                 height={180}
             />
 
-            {/* Desktop Only: Bottom-Right Eye Dot Pattern */}
             <EyeDotPattern
-                className="hidden sm:block absolute sm:-bottom-4 sm:-right-8 z-10 opacity-95"
+                className="hidden lg:block absolute lg:-bottom-4 lg:-right-8 z-10 opacity-95"
                 width={360}
                 height={180}
             />
@@ -128,6 +123,7 @@ export default function Examination() {
             <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 relative z-40 pt-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
+                    {/* Left Column: LASIK Details */}
                     <motion.div
                         initial={{ opacity: 0, x: -30 }}
                         whileInView={{ opacity: 1, x: 0 }}
@@ -135,44 +131,20 @@ export default function Examination() {
                         transition={{ duration: 0.7, ease: 'easeOut' }}
                         className="lg:col-span-6 flex flex-col justify-center relative z-20"
                     >
-                        <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.1 }}
-                            className="inline-block self-start px-3 py-1 rounded-full bg-neutral-100 text-neutral-600 text-[11px] font-mono tracking-widest uppercase mb-4 border border-neutral-200"
-                        >
+                        <div className="inline-block self-start px-3 py-1 rounded-full bg-neutral-100 text-neutral-600 text-[11px] font-mono tracking-widest uppercase mb-4 border border-neutral-200">
                             LASIK Eye Surgery
-                        </motion.div>
+                        </div>
 
-                        <motion.h2
-                            initial={{ opacity: 0, y: 15 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                            className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-black leading-tight"
-                        >
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-black leading-tight">
                             Freedom From Glasses, <br />
                             In Minutes.
-                        </motion.h2>
+                        </h2>
 
-                        <motion.p
-                            initial={{ opacity: 0, y: 15 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.3 }}
-                            className="mt-5 text-base sm:text-lg text-neutral-600 font-light leading-relaxed"
-                        >
+                        <p className="mt-5 text-base sm:text-lg text-neutral-600 font-light leading-relaxed">
                             LASIK (Laser-Assisted In Situ Keratomileusis) reshapes the cornea using a precise, computer-guided excimer laser—correcting nearsightedness, farsightedness, and astigmatism. The procedure is quick, typically performed with numbing eye drops rather than general anesthesia, and most patients return to normal daily activities within a day or two.
-                        </motion.p>
+                        </p>
 
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.4 }}
-                            className="relative mt-8 rounded-2xl overflow-hidden border border-neutral-200 shadow-lg aspect-video sm:aspect-4/3 w-full bg-neutral-50"
-                        >
+                        <div className="relative mt-8 rounded-2xl overflow-hidden border border-neutral-200 shadow-lg aspect-video sm:aspect-4/3 w-full bg-neutral-50">
                             <Image
                                 src="/images/photos/lasik.webp"
                                 alt="LASIK laser eye surgery procedure"
@@ -180,15 +152,9 @@ export default function Examination() {
                                 sizes="(max-width: 1024px) 100vw, 50vw"
                                 className="object-cover object-[78%_45%] scale-[1.35]"
                             />
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.5 }}
-                            className="mt-8 grid grid-cols-2 gap-4"
-                        >
+                        <div className="mt-8 grid grid-cols-2 gap-4">
                             <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200">
                                 <div className="text-xs font-bold uppercase tracking-wider text-black">Quick Procedure</div>
                                 <div className="text-xs text-neutral-500 mt-1 font-light">Typically completed in under 15 minutes for both eyes.</div>
@@ -197,14 +163,15 @@ export default function Examination() {
                                 <div className="text-xs font-bold uppercase tracking-wider text-black">Fast Recovery</div>
                                 <div className="text-xs text-neutral-500 mt-1 font-light">Most patients notice clearer vision within a day or two.</div>
                             </div>
-                        </motion.div>
+                        </div>
                     </motion.div>
 
+                    {/* Right Column: Intake Form */}
                     <motion.div
                         initial={{ opacity: 0, x: 30 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true, margin: '-50px' }}
-                        transition={{ duration: 0.7, ease: 'easeOut', delay: 0.2 }}
+                        transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
                         className="lg:col-span-6"
                     >
                         <div className="p-8 sm:p-12 rounded-3xl bg-neutral-50 border border-neutral-200 shadow-sm">
@@ -222,12 +189,7 @@ export default function Examination() {
                             </div>
 
                             {formSubmitted ? (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.4 }}
-                                    className="p-8 rounded-2xl bg-white border border-neutral-300 text-center py-12"
-                                >
+                                <div className="p-8 rounded-2xl bg-white border border-neutral-300 text-center py-12">
                                     <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center mx-auto mb-4 text-xl">
                                         ✓
                                     </div>
@@ -241,7 +203,7 @@ export default function Examination() {
                                     >
                                         Submit Another Inquiry
                                     </button>
-                                </motion.div>
+                                </div>
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-5">
                                     <div>
@@ -254,7 +216,7 @@ export default function Examination() {
                                             placeholder="e.g. Eleanor Vance"
                                             value={formData.fullName}
                                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-hidden focus:border-black transition-colors"
+                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-none focus:border-black transition-colors"
                                         />
                                     </div>
 
@@ -268,7 +230,7 @@ export default function Examination() {
                                             placeholder="e.g. eleanor@email.com"
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-hidden focus:border-black transition-colors"
+                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-none focus:border-black transition-colors"
                                         />
                                     </div>
 
@@ -282,7 +244,7 @@ export default function Examination() {
                                             placeholder="(555) 000-0000"
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-hidden focus:border-black transition-colors"
+                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-none focus:border-black transition-colors"
                                         />
                                     </div>
 
@@ -295,7 +257,7 @@ export default function Examination() {
                                             placeholder="Any prior surgeries, current prescriptions, or specific questions..."
                                             value={formData.message}
                                             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-hidden focus:border-black transition-colors resize-none"
+                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-none focus:border-black transition-colors resize-none"
                                         />
                                     </div>
 
@@ -316,13 +278,7 @@ export default function Examination() {
 
                         </div>
 
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.6 }}
-                            className="mt-8 flex items-center justify-center"
-                        >
+                        <div className="mt-8 flex items-center justify-center">
                             <Image
                                 src="/images/logo/eyevora2.png"
                                 alt="Eyevora Logo"
@@ -330,7 +286,7 @@ export default function Examination() {
                                 height={40}
                                 className="h-6 sm:h-8 w-auto object-contain brightness-0"
                             />
-                        </motion.div>
+                        </div>
                     </motion.div>
 
                 </div>

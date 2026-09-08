@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -27,10 +27,10 @@ export default function Navbar() {
 
     return (
         <motion.header
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a] text-white border-b border-white/10 h-16 sm:h-20"
+            initial={{ y: -80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a] text-white border-b border-white/10 h-16 sm:h-20 transform-gpu"
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 h-full flex items-center justify-between">
 
@@ -46,16 +46,17 @@ export default function Navbar() {
                     />
                 </a>
 
-                {/* Center: Desktop Links with Framer Motion Hover */}
+                {/* Center: Desktop Links with Motion Hover Effects */}
                 <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs font-medium tracking-wide text-neutral-300">
                     {navLinks.map((link) => (
                         <motion.a
                             key={link.name}
                             href={link.href}
                             onClick={(e) => handleScroll(e, link.href)}
-                            whileHover={{ scale: 1.05, color: '#ffffff' }}
-                            transition={{ duration: 0.2 }}
-                            className="py-1 cursor-pointer"
+                            whileHover={{ scale: 1.08, color: '#ffffff' }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0.2, ease: 'easeInOut' }}
+                            className="py-1 cursor-pointer transition-colors"
                         >
                             {link.name}
                         </motion.a>
@@ -67,9 +68,10 @@ export default function Navbar() {
                     <motion.a
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
                         href="#consultation-patient"
                         onClick={(e) => handleScroll(e, '#consultation-patient')}
-                        className="px-5 py-2.5 rounded-full bg-white text-black text-xs font-semibold tracking-wide shadow-md"
+                        className="px-5 py-2.5 rounded-full bg-white text-black text-xs font-semibold tracking-wide shadow-md hover:bg-neutral-200 transition-colors"
                     >
                         Book Consultation
                     </motion.a>
@@ -95,40 +97,32 @@ export default function Navbar() {
 
             </div>
 
-            {/* Animated Mobile Drawer Menu */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeInOut' }}
-                        className="lg:hidden bg-[#0a0a0a] border-b border-white/10 px-6 py-6 space-y-4 overflow-hidden"
-                    >
-                        <nav className="flex flex-col gap-4 text-sm font-medium text-neutral-300">
-                            {navLinks.map((link) => (
-                                <a
-                                    key={link.name}
-                                    href={link.href}
-                                    onClick={(e) => handleScroll(e, link.href)}
-                                    className="hover:text-white transition-colors"
-                                >
-                                    {link.name}
-                                </a>
-                            ))}
-                        </nav>
-                        <div className="pt-4 border-t border-white/10">
+            {/* Mobile Drawer (Instant rendering for mobile touch efficiency) */}
+            {isOpen && (
+                <div className="lg:hidden bg-[#0a0a0a] border-b border-white/10 px-6 py-6 space-y-4">
+                    <nav className="flex flex-col gap-4 text-sm font-medium text-neutral-300">
+                        {navLinks.map((link) => (
                             <a
-                                href="#consultation-patient"
-                                onClick={(e) => handleScroll(e, '#consultation-patient')}
-                                className="block w-full text-center px-5 py-3 rounded-full bg-white text-black text-xs font-semibold tracking-wide"
+                                key={link.name}
+                                href={link.href}
+                                onClick={(e) => handleScroll(e, link.href)}
+                                className="hover:text-white transition-colors"
                             >
-                                Book Consultation
+                                {link.name}
                             </a>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        ))}
+                    </nav>
+                    <div className="pt-4 border-t border-white/10">
+                        <a
+                            href="#consultation-patient"
+                            onClick={(e) => handleScroll(e, '#consultation-patient')}
+                            className="block w-full text-center px-5 py-3 rounded-full bg-white text-black text-xs font-semibold tracking-wide"
+                        >
+                            Book Consultation
+                        </a>
+                    </div>
+                </div>
+            )}
         </motion.header>
     );
 }

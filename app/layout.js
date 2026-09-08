@@ -30,6 +30,24 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        {/* Preload the very first eye-animation frame for each breakpoint so
+            it starts downloading before React mounts, eliminating the black
+            flash that shows while EyeAnimation.jsx figures out isMobile and
+            fetches its placeholder image. */}
+        <link
+          rel="preload"
+          as="image"
+          href="/eye-animation/desktop/ezgif-frame-001.webp"
+          media="(min-width: 768px)"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="/eye-animation/mobile/ezgif-frame-001.webp"
+          media="(max-width: 767px)"
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>
