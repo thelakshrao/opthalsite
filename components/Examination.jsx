@@ -3,7 +3,24 @@
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ArrowUpRight } from 'lucide-react';
+import emailjs from '@emailjs/browser';
+import { diseaseData } from '@/data/diseaseContent';
+
+const EMAILJS_SERVICE_ID = 'service_nx91wke';
+const EMAILJS_TEMPLATE_ID = 'template_loos9xj';
+const EMAILJS_PUBLIC_KEY = 'k3ORwrN11DA_MndsG';
+
+const COUNTRY_CODES = [
+    { code: "+91", label: "🇮🇳 +91 (IN)", maxLength: 10 },
+    { code: "+1", label: "🇺🇸 +1 (US/CA)", maxLength: 10 },
+    { code: "+44", label: "🇬🇧 +44 (UK)", maxLength: 11 },
+    { code: "+61", label: "🇦🇺 +61 (AU)", maxLength: 9 },
+    { code: "+971", label: "🇦🇪 +971 (UAE)", maxLength: 9 },
+    { code: "+81", label: "🇯🇵 +81 (JP)", maxLength: 10 },
+    { code: "+49", label: "🇩🇪 +49 (DE)", maxLength: 11 },
+    { code: "+33", label: "🇫🇷 +33 (FR)", maxLength: 9 },
+    { code: "+65", label: "🇸🇬 +65 (SG)", maxLength: 8 },
+];
 
 function useEyeDots(width = 360, height = 180, step = 10) {
     return useMemo(() => {
@@ -79,16 +96,49 @@ function EyeDotPattern({ className = '', width = 360, height = 180 }) {
 
 export default function Examination() {
     const [formSubmitted, setFormSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [countryCode, setCountryCode] = useState("+91");
     const [formData, setFormData] = useState({
         fullName: '',
-        email: '',
         phone: '',
+        treatment: '',
         message: '',
     });
 
-    const handleSubmit = (e) => {
+    const selectedCountry = useMemo(() => {
+        return COUNTRY_CODES.find((c) => c.code === countryCode) || COUNTRY_CODES[0];
+    }, [countryCode]);
+
+    const handlePhoneChange = (e) => {
+        const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, selectedCountry.maxLength);
+        setFormData((prev) => ({ ...prev, phone: digitsOnly }));
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setFormSubmitted(true);
+        setLoading(true);
+
+        const fullPhoneNumber = `${countryCode} ${formData.phone}`;
+
+        try {
+            await emailjs.send(
+                EMAILJS_SERVICE_ID,
+                EMAILJS_TEMPLATE_ID,
+                {
+                    from_name: formData.fullName,
+                    phone: fullPhoneNumber,
+                    treatment: formData.treatment || 'General Inquiry',
+                    message: formData.message || 'No message provided',
+                },
+                EMAILJS_PUBLIC_KEY
+            );
+            setFormSubmitted(true);
+        } catch (error) {
+            console.error('Email send failed:', error);
+            alert('Failed to submit consultation request. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -207,10 +257,13 @@ export default function Examination() {
                                     </div>
                                     <h4 className="text-lg font-bold text-black">Consultation Request Received</h4>
                                     <p className="text-xs sm:text-sm text-neutral-600 mt-2 max-w-sm mx-auto">
-                                        Thank you, <span className="font-semibold">{formData.fullName}</span>. Our clinical coordinator will contact you at <span className="font-semibold">{formData.phone}</span> within one business day to confirm your appointment.
+                                        Thank you, <span className="font-semibold">{formData.fullName}</span>. Our clinical coordinator will contact you at <span className="font-semibold">{countryCode} {formData.phone}</span> within one business day regarding your request for <span className="font-semibold">{formData.treatment}</span>.
                                     </p>
                                     <button
-                                        onClick={() => setFormSubmitted(false)}
+                                        onClick={() => {
+                                            setFormSubmitted(false);
+                                            setFormData({ fullName: '', phone: '', treatment: '', message: '' });
+                                        }}
                                         className="mt-6 px-5 py-2 text-xs font-semibold rounded-full bg-neutral-100 text-neutral-800 hover:bg-neutral-200 transition-colors"
                                     >
                                         Submit Another Inquiry
@@ -234,30 +287,48 @@ export default function Examination() {
 
                                     <div>
                                         <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
-                                            Email Address *
+                                            Phone Number *
                                         </label>
-                                        <input
-                                            type="email"
-                                            required
-                                            placeholder="e.g. eleanor@email.com"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-none focus:border-black transition-colors"
-                                        />
+                                        <div className="flex rounded-xl border border-neutral-300 bg-white overflow-hidden focus-within:border-black transition-colors">
+                                            <select
+                                                value={countryCode}
+                                                onChange={(e) => setCountryCode(e.target.value)}
+                                                className="bg-neutral-100 text-neutral-800 text-xs px-3 py-3 border-r border-neutral-300 outline-none font-medium"
+                                            >
+                                                {COUNTRY_CODES.map((item) => (
+                                                    <option key={item.code} value={item.code}>
+                                                        {item.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                type="tel"
+                                                required
+                                                value={formData.phone}
+                                                onChange={handlePhoneChange}
+                                                maxLength={selectedCountry.maxLength}
+                                                placeholder={`${selectedCountry.maxLength} digits`}
+                                                className="w-full px-4 py-3 text-sm text-black placeholder-neutral-400 outline-none"
+                                            />
+                                        </div>
                                     </div>
 
                                     <div>
                                         <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
-                                            Phone Number *
+                                            Select Treatment
                                         </label>
-                                        <input
-                                            type="tel"
-                                            required
-                                            placeholder="(555) 000-0000"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black placeholder-neutral-400 focus:outline-none focus:border-black transition-colors"
-                                        />
+                                        <select
+                                            value={formData.treatment}
+                                            onChange={(e) => setFormData({ ...formData, treatment: e.target.value })}
+                                            className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-300 text-sm text-black focus:outline-none focus:border-black transition-colors"
+                                        >
+                                            <option value="" disabled>Select a Condition / Treatment...</option>
+                                            {Object.values(diseaseData).map((item) => (
+                                                <option key={item.id} value={item.name}>
+                                                    {item.name}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     <div>
@@ -277,9 +348,10 @@ export default function Examination() {
                                         whileHover={{ scale: 1.01 }}
                                         whileTap={{ scale: 0.98 }}
                                         type="submit"
-                                        className="w-full py-3.5 rounded-full bg-black text-white text-xs sm:text-sm font-semibold tracking-wide hover:bg-neutral-800 transition-colors shadow-xs"
+                                        disabled={loading}
+                                        className="w-full py-3.5 rounded-full bg-black text-white text-xs sm:text-sm font-semibold tracking-wide hover:bg-neutral-800 transition-colors shadow-xs disabled:opacity-50"
                                     >
-                                        Request Priority Consultation
+                                        {loading ? 'Sending Request...' : 'Request Priority Consultation'}
                                     </motion.button>
 
                                     <p className="text-[11px] text-neutral-500 text-center font-light mt-3">
@@ -346,8 +418,8 @@ export default function Examination() {
                             </div>
 
                             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-black leading-tight">
-                                Restore The Clarity <br />
-                                You Used To See.
+                                Clear Vision. <br />
+                                Without The Glasses.
                             </h2>
 
                             <p className="mt-5 text-base sm:text-lg text-neutral-600 font-light leading-relaxed">

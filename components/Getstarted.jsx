@@ -1,8 +1,26 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import emailjs from '@emailjs/browser';
+import { diseaseData } from '@/data/diseaseContent';
+
+const EMAILJS_SERVICE_ID = 'service_nx91wke';
+const EMAILJS_TEMPLATE_ID = 'template_loos9xj';
+const EMAILJS_PUBLIC_KEY = 'k3ORwrN11DA_MndsG';
+
+const COUNTRY_CODES = [
+    { code: "+91", label: "🇮🇳 +91 (IN)", maxLength: 10 },
+    { code: "+1", label: "🇺🇸 +1 (US/CA)", maxLength: 10 },
+    { code: "+44", label: "🇬🇧 +44 (UK)", maxLength: 11 },
+    { code: "+61", label: "🇦🇺 +61 (AU)", maxLength: 9 },
+    { code: "+971", label: "🇦🇪 +971 (UAE)", maxLength: 9 },
+    { code: "+81", label: "🇯🇵 +81 (JP)", maxLength: 10 },
+    { code: "+49", label: "🇩🇪 +49 (DE)", maxLength: 11 },
+    { code: "+33", label: "🇫🇷 +33 (FR)", maxLength: 9 },
+    { code: "+65", label: "🇸🇬 +65 (SG)", maxLength: 8 },
+];
 
 const fadeUp = {
     hidden: { opacity: 0, y: 24 },
@@ -29,8 +47,47 @@ const stagger = {
 };
 
 export default function GetStarted() {
+    const [countryCode, setCountryCode] = useState('+91');
+    const [form, setForm] = useState({ fullName: '', phone: '', treatment: '' });
+    const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const selectedCountry = useMemo(() => {
+        return COUNTRY_CODES.find((c) => c.code === countryCode) || COUNTRY_CODES[0];
+    }, [countryCode]);
+
+    const handlePhoneChange = (e) => {
+        const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, selectedCountry.maxLength);
+        setForm((prev) => ({ ...prev, phone: digitsOnly }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const fullPhoneNumber = `${countryCode} ${form.phone}`;
+
+        try {
+            await emailjs.send(
+                EMAILJS_SERVICE_ID,
+                EMAILJS_TEMPLATE_ID,
+                {
+                    from_name: form.fullName,
+                    phone: fullPhoneNumber,
+                    treatment: form.treatment || 'General Inquiry',
+                },
+                EMAILJS_PUBLIC_KEY
+            );
+            setSubmitted(true);
+        } catch (error) {
+            console.error('Email send error:', error);
+            alert('Failed to send consultation request. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        // SECTION 7: CONSULTATION FINALE / GET STARTED
         <section
             id="consultation-finale"
             className="py-14 sm:py-20 px-4 sm:px-8 lg:px-12 bg-[#000000] text-white border-t border-white/10"
@@ -57,7 +114,6 @@ export default function GetStarted() {
             </motion.div>
 
             <div className="max-w-6xl mx-auto mt-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-start">
-                {/* LEFT: COMPACT INTAKE FORM */}
                 <motion.div
                     className="w-full max-w-sm mx-auto lg:mx-0"
                     initial="hidden"
@@ -65,53 +121,90 @@ export default function GetStarted() {
                     viewport={{ once: true, amount: 0.3 }}
                     variants={fadeLeft}
                 >
-                    <form className="p-5 rounded-2xl bg-neutral-950 border border-white/10 space-y-3">
-                        <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
-                                Full Name
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="e.g. Eleanor Vance"
-                                className="w-full px-3 py-2 text-sm rounded-lg bg-neutral-900 border border-white/10 text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/30 transition-colors"
-                            />
+                    {submitted ? (
+                        <div className="p-6 rounded-2xl bg-neutral-950 border border-white/10 text-center">
+                            <p className="text-sm font-semibold text-white">Consultation Requested!</p>
+                            <p className="text-xs text-neutral-400 mt-1">
+                                We will get back to you shortly regarding your request for {form.treatment}.
+                            </p>
                         </div>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="p-5 rounded-2xl bg-neutral-950 border border-white/10 space-y-3">
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                                    Full Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Eleanor Vance"
+                                    value={form.fullName}
+                                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                                    className="w-full px-3 py-2 text-sm rounded-lg bg-neutral-900 border border-white/10 text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/30 transition-colors"
+                                />
+                            </div>
 
-                        <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                placeholder="e.g. eleanor@email.com"
-                                className="w-full px-3 py-2 text-sm rounded-lg bg-neutral-900 border border-white/10 text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/30 transition-colors"
-                            />
-                        </div>
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                                    Phone *
+                                </label>
+                                <div className="flex rounded-lg border border-white/10 bg-neutral-900 overflow-hidden focus-within:border-white/30 transition-colors">
+                                    <select
+                                        value={countryCode}
+                                        onChange={(e) => setCountryCode(e.target.value)}
+                                        className="bg-neutral-800 text-white text-xs px-2 py-2 border-r border-white/10 outline-none"
+                                    >
+                                        {COUNTRY_CODES.map((item) => (
+                                            <option key={item.code} value={item.code}>
+                                                {item.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                        type="tel"
+                                        required
+                                        value={form.phone}
+                                        onChange={handlePhoneChange}
+                                        maxLength={selectedCountry.maxLength}
+                                        placeholder={`${selectedCountry.maxLength} digits`}
+                                        className="w-full bg-transparent px-3 py-2 text-sm text-white placeholder:text-neutral-600 outline-none"
+                                    />
+                                </div>
+                            </div>
 
-                        <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
-                                Phone
-                            </label>
-                            <input
-                                type="tel"
-                                placeholder="(555) 000-0000"
-                                className="w-full px-3 py-2 text-sm rounded-lg bg-neutral-900 border border-white/10 text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/30 transition-colors"
-                            />
-                        </div>
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                                    Select Treatment
+                                </label>
+                                <select
+                                    value={form.treatment}
+                                    onChange={(e) => setForm({ ...form, treatment: e.target.value })}
+                                    className="w-full px-3 py-2 text-sm rounded-lg bg-neutral-900 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
+                                >
+                                    <option value="" disabled>Select a Treatment...</option>
+                                    {Object.values(diseaseData).map((item) => (
+                                        <option key={item.id} value={item.name} className="bg-neutral-900 text-white">
+                                            {item.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                        <motion.button
-                            type="submit"
-                            className="w-full mt-1 px-6 py-2.5 rounded-full bg-white text-black text-sm font-semibold tracking-wide hover:bg-neutral-200 transition-colors"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            Request Consultation
-                        </motion.button>
+                            <motion.button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full mt-1 px-6 py-2.5 rounded-full bg-white text-black text-sm font-semibold tracking-wide hover:bg-neutral-200 transition-colors disabled:opacity-50"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                {loading ? 'Submitting...' : 'Request Consultation'}
+                            </motion.button>
 
-                        <p className="text-[10px] text-neutral-500 text-center pt-1">
-                            Confidential & HIPAA compliant.
-                        </p>
-                    </form>
+                            <p className="text-[10px] text-neutral-500 text-center pt-1">
+                                Confidential & HIPAA compliant.
+                            </p>
+                        </form>
+                    )}
 
                     <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-3">
                         <a
@@ -123,7 +216,6 @@ export default function GetStarted() {
                     </div>
                 </motion.div>
 
-                {/* RIGHT: DOCTOR IMAGE */}
                 <motion.div
                     className="relative w-full max-w-md mx-auto aspect-4/3 sm:aspect-video lg:aspect-4/3 rounded-3xl overflow-hidden ring-1 ring-white/20 shadow-2xl bg-neutral-950"
                     initial="hidden"

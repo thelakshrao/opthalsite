@@ -4,8 +4,13 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useParams, notFound } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import emailjs from "@emailjs/browser";
 import Navbar from "@/components/Navbar";
 import { diseaseData } from "@/data/diseaseContent";
+
+const EMAILJS_SERVICE_ID = "service_nx91wke";
+const EMAILJS_TEMPLATE_ID = "template_loos9xj";
+const EMAILJS_PUBLIC_KEY = "k3ORwrN11DA_MndsG";
 
 const EYE_VIEWS = {
     front: "/images/photos/front.png",
@@ -19,10 +24,6 @@ const VIEW_LABELS = {
     back: "Posterior / Fundus",
 };
 
-// Matches the Tailwind `p-2` (0.5rem) padding on the image wrapper below.
-// Used to work out the image's *actual* rendered box inside that padding,
-// since object-contain letterboxes the image whenever its natural aspect
-// ratio doesn't exactly match the container's aspect-[4/3] box.
 const IMAGE_PADDING_PX = 8;
 
 function RichText({ text = "" }) {
@@ -55,16 +56,16 @@ export default function TreatmentPage() {
     const anchor = { x: 80, y: 20 };
 
     const [openFaq, setOpenFaq] = useState(0);
-    const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+    const [form, setForm] = useState({ name: "", phone: "", treatment: d?.name || "", message: "" });
     const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    // --- Hotspot alignment fix -------------------------------------------
-    // The dot's x/y is authored as a percentage of the *image*, but the
-    // image is rendered with object-contain inside a fixed aspect-[4/3]
-    // box, so it gets letterboxed on one axis whenever its natural aspect
-    // ratio differs from 4:3. We measure the container + the image's
-    // natural size, work out the actual rendered (contained) box, and
-    // convert the authored percentage into that box's coordinate space.
+    useEffect(() => {
+        if (d?.name) {
+            setForm((f) => ({ ...f, treatment: d.name }));
+        }
+    }, [d]);
+
     const imgWrapRef = useRef(null);
     const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
     const [naturalSize, setNaturalSize] = useState(null);
@@ -121,7 +122,6 @@ export default function TreatmentPage() {
             y: (pxY / ch) * 100,
         };
     }, [naturalSize, containerSize, hotspot.x, hotspot.y]);
-    // -----------------------------------------------------------------------
 
     useEffect(() => {
         setOpenFaq(0);
@@ -139,10 +139,29 @@ export default function TreatmentPage() {
         setForm((f) => ({ ...f, [name]: value }));
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        console.log("Consultation request:", { disease: d.name, ...form });
-        setSubmitted(true);
+        setLoading(true);
+
+        try {
+            await emailjs.send(
+                EMAILJS_SERVICE_ID,
+                EMAILJS_TEMPLATE_ID,
+                {
+                    from_name: form.name,
+                    phone: form.phone,
+                    treatment: form.treatment,
+                    message: form.message || "No message provided",
+                },
+                EMAILJS_PUBLIC_KEY
+            );
+            setSubmitted(true);
+        } catch (error) {
+            console.error("EmailJS Error:", error);
+            alert("Failed to submit inquiry. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     }
 
     const EyeDiagramFrame = () => (
@@ -449,7 +468,7 @@ export default function TreatmentPage() {
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <div>
                                             <label className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
-                                                Full Name
+                                                Full Name *
                                             </label>
                                             <input
                                                 type="text"
@@ -480,17 +499,22 @@ export default function TreatmentPage() {
 
                                     <div>
                                         <label className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
-                                            Email Address *
+                                            Condition / Treatment *
                                         </label>
-                                        <input
-                                            type="email"
-                                            name="email"
+                                        <select
+                                            name="treatment"
                                             required
-                                            value={form.email}
+                                            value={form.treatment}
                                             onChange={handleChange}
-                                            placeholder="john@example.com"
-                                            className="mt-1 w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-white/50"
-                                        />
+                                            className="mt-1 w-full rounded-lg border border-white/15 bg-neutral-900 px-3 py-2 text-xs text-white outline-none focus:border-white/50"
+                                        >
+                                            <option value="" disabled>Select a Condition / Treatment...</option>
+                                            {Object.values(diseaseData).map((item) => (
+                                                <option key={item.id} value={item.name}>
+                                                    {item.name}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     <div>
@@ -509,9 +533,10 @@ export default function TreatmentPage() {
 
                                     <button
                                         type="submit"
-                                        className="w-full rounded-lg bg-white py-2.5 text-xs font-bold text-black transition hover:bg-neutral-200"
+                                        disabled={loading}
+                                        className="w-full rounded-lg bg-white py-2.5 text-xs font-bold text-black transition hover:bg-neutral-200 disabled:opacity-50"
                                     >
-                                        Confirm Consultation Request
+                                        {loading ? "Sending..." : "Confirm Consultation Request"}
                                     </button>
                                 </form>
                             )}
