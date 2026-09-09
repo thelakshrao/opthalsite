@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback, useContext } from "react";
 import { useParams, notFound } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -8,6 +8,7 @@ import emailjs from "@emailjs/browser";
 import Navbar from "@/components/Navbar";
 import { diseaseData } from "@/data/diseaseContent";
 import Footer from "@/components/Footer";
+import { LenisContext } from "@/data/useLenis";
 
 const EMAILJS_SERVICE_ID = "service_nx91wke";
 const EMAILJS_TEMPLATE_ID = "template_loos9xj";
@@ -61,7 +62,6 @@ const COUNTRY_CODES = [
     { code: "+94", label: "🇱🇰 +94 (LK)", maxLength: 9 },
     { code: "+95", label: "🇲🇲 +95 (MM)", maxLength: 10 },
     { code: "+98", label: "🇮🇷 +98 (IR)", maxLength: 10 },
-
     { code: "+211", label: "🇸🇸 +211 (SS)", maxLength: 9 },
     { code: "+212", label: "🇲🇦 +212 (MA)", maxLength: 9 },
     { code: "+213", label: "🇩🇿 +213 (DZ)", maxLength: 9 },
@@ -115,13 +115,11 @@ const COUNTRY_CODES = [
     { code: "+267", label: "🇧🇼 +267 (BW)", maxLength: 8 },
     { code: "+268", label: "🇸🇿 +268 (SZ)", maxLength: 8 },
     { code: "+269", label: "🇰🇲 +269 (KM)", maxLength: 7 },
-
     { code: "+290", label: "🇸🇭 +290 (SH)", maxLength: 5 },
     { code: "+291", label: "🇪🇷 +291 (ER)", maxLength: 7 },
     { code: "+297", label: "🇦🇼 +297 (AW)", maxLength: 7 },
     { code: "+298", label: "🇫🇴 +298 (FO)", maxLength: 6 },
     { code: "+299", label: "🇬🇱 +299 (GL)", maxLength: 6 },
-
     { code: "+350", label: "🇬🇮 +350 (GI)", maxLength: 8 },
     { code: "+351", label: "🇵🇹 +351 (PT)", maxLength: 9 },
     { code: "+352", label: "🇱🇺 +352 (LU)", maxLength: 9 },
@@ -149,7 +147,6 @@ const COUNTRY_CODES = [
     { code: "+386", label: "🇸🇮 +386 (SI)", maxLength: 8 },
     { code: "+387", label: "🇧🇦 +387 (BA)", maxLength: 8 },
     { code: "+389", label: "🇲🇰 +389 (MK)", maxLength: 8 },
-
     { code: "+960", label: "🇲🇻 +960 (MV)", maxLength: 7 },
     { code: "+961", label: "🇱🇧 +961 (LB)", maxLength: 8 },
     { code: "+962", label: "🇯🇴 +962 (JO)", maxLength: 9 },
@@ -173,7 +170,6 @@ const COUNTRY_CODES = [
     { code: "+995", label: "🇬🇪 +995 (GE)", maxLength: 9 },
     { code: "+996", label: "🇰🇬 +996 (KG)", maxLength: 9 },
     { code: "+998", label: "🇺🇿 +998 (UZ)", maxLength: 9 },
-
     { code: "+1242", label: "🇧🇸 +1242 (BS)", maxLength: 7 },
     { code: "+1246", label: "🇧🇧 +1246 (BB)", maxLength: 7 },
     { code: "+1264", label: "🇦🇮 +1264 (AI)", maxLength: 7 },
@@ -197,7 +193,6 @@ const COUNTRY_CODES = [
     { code: "+1868", label: "🇹🇹 +1868 (TT)", maxLength: 7 },
     { code: "+1869", label: "🇰🇳 +1869 (KN)", maxLength: 7 },
     { code: "+1876", label: "🇯🇲 +1876 (JM)", maxLength: 7 },
-
     { code: "+500", label: "🇫🇰 +500 (FK)", maxLength: 5 },
     { code: "+501", label: "🇧ℤ +501 (BZ)", maxLength: 7 },
     { code: "+502", label: "🇬🇹 +502 (GT)", maxLength: 8 },
@@ -218,7 +213,6 @@ const COUNTRY_CODES = [
     { code: "+597", label: "🇸🇷 +597 (SR)", maxLength: 7 },
     { code: "+598", label: "🇺🇾 +598 (UY)", maxLength: 8 },
     { code: "+599", label: "🇨🇼 +599 (CW)", maxLength: 8 },
-
     { code: "+670", label: "🇹🇱 +670 (TL)", maxLength: 8 },
     { code: "+672", label: "🇦🇶 +672 (AQ)", maxLength: 9 },
     { code: "+673", label: "🇧🇳 +673 (BN)", maxLength: 7 },
@@ -240,7 +234,6 @@ const COUNTRY_CODES = [
     { code: "+690", label: "🇹🇰 +690 (TK)", maxLength: 4 },
     { code: "+691", label: "🇫🇲 +691 (FM)", maxLength: 7 },
     { code: "+692", label: "🇲🇭 +692 (MH)", maxLength: 7 },
-
     { code: "+850", label: "🇰🇵 +850 (KP)", maxLength: 10 },
     { code: "+852", label: "🇭🇰 +852 (HK)", maxLength: 8 },
     { code: "+853", label: "🇲🇴 +853 (MO)", maxLength: 8 },
@@ -283,6 +276,7 @@ function RichText({ text = "" }) {
 
 export default function TreatmentPage() {
     const { treatmentId } = useParams();
+    const lenisRef = useContext(LenisContext);
     const d = diseaseData?.[treatmentId];
 
     if (!d) {
@@ -312,6 +306,18 @@ export default function TreatmentPage() {
     const imgWrapRef = useRef(null);
     const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
     const [naturalSize, setNaturalSize] = useState(null);
+
+    const scrollToConsultation = (e) => {
+        e.preventDefault();
+        const target = document.getElementById("book-consultation");
+        if (target) {
+            if (lenisRef?.current) {
+                lenisRef.current.scrollTo(target, { offset: -80, duration: 1.2 });
+            } else {
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
+    };
 
     useEffect(() => {
         const el = imgWrapRef.current;
@@ -529,12 +535,12 @@ export default function TreatmentPage() {
                     )}
 
                     <div className="mt-8 flex items-center gap-4">
-                        <a
-                            href="#book-consultation"
-                            className="inline-flex items-center justify-center rounded-full bg-black px-7 py-3 text-sm font-semibold text-white transition hover:bg-black/80 shadow-md"
+                        <button
+                            onClick={scrollToConsultation}
+                            className="inline-flex items-center justify-center rounded-full bg-black px-7 py-3 text-sm font-semibold text-white transition hover:bg-black/80 shadow-md cursor-pointer"
                         >
                             Book Consultation
-                        </a>
+                        </button>
                     </div>
                 </div>
 
@@ -660,7 +666,7 @@ export default function TreatmentPage() {
 
             <section
                 id="book-consultation"
-                className="bg-neutral-950 py-20 text-white border-t border-white/10"
+                className="bg-neutral-950 py-20 text-white border-t border-white/10 scroll-mt-20 sm:scroll-mt-28"
             >
                 <div className="mx-auto max-w-6xl px-6 lg:px-10">
                     <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
