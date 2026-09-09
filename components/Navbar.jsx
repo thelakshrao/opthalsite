@@ -8,8 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { diseaseData } from '@/data/diseaseContent';
 
-// Build the treatment list once from the single source of truth (diseaseData).
-// Any condition added/removed there automatically reflects in this dropdown.
 const TREATMENT_LIST = Object.values(diseaseData).map((d) => ({
     id: d.id,
     name: d.name,
@@ -17,36 +15,37 @@ const TREATMENT_LIST = Object.values(diseaseData).map((d) => ({
 }));
 
 export default function Navbar() {
-    const [isOpen, setIsOpen] = useState(false); // mobile menu
+    const [isOpen, setIsOpen] = useState(false);
     const [isMobileTreatmentOpen, setIsMobileTreatmentOpen] = useState(false);
     const [isTreatmentHover, setIsTreatmentHover] = useState(false);
     const closeTimeout = useRef(null);
     const pathname = usePathname();
     const isHome = pathname === '/';
 
-    // type: 'anchor' -> scrolls to a section on the homepage (href is the section id)
-    // type: 'page'   -> navigates to a real route
     const navLinks = [
         { name: 'Home', href: '#hero-animation', type: 'anchor' },
         { name: 'About us', href: '/about', type: 'page' },
-        // "Specialities" now routes to the Services section (Services.jsx)
         { name: 'Specialities', href: '#services-section', type: 'anchor' },
         { name: 'Credibility', href: '#surgical-credibility', type: 'anchor' },
         { name: 'Our Journey', href: '#patient-journey', type: 'anchor' },
     ];
 
-    const bookHref = '#consultation-patient';
+    const bookHref = '#Examination-form';
 
     const handleAnchorClick = (e, hash) => {
+        e.preventDefault();
+        setIsOpen(false);
+
         if (isHome) {
-            e.preventDefault();
-            setIsOpen(false);
             const targetElement = document.querySelector(hash);
             if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth' });
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                window.history.pushState(null, '', hash);
+            } else {
+                window.location.hash = hash;
             }
         } else {
-            setIsOpen(false);
+            window.location.href = `/${hash}`;
         }
     };
 
@@ -88,7 +87,6 @@ export default function Navbar() {
                 </Link>
 
                 <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs font-medium tracking-wide text-neutral-300">
-                    {/* Home */}
                     <motion.div
                         whileHover={{ scale: 1.08, color: '#ffffff' }}
                         whileTap={{ scale: 0.95 }}
@@ -104,7 +102,6 @@ export default function Navbar() {
                         </Link>
                     </motion.div>
 
-                    {/* About us */}
                     <motion.div
                         whileHover={{ scale: 1.08, color: '#ffffff' }}
                         whileTap={{ scale: 0.95 }}
@@ -116,7 +113,6 @@ export default function Navbar() {
                         </Link>
                     </motion.div>
 
-                    {/* Treatment - hover dropdown with scrollable list */}
                     <div
                         className="relative py-1"
                         onMouseEnter={handleTreatmentMouseEnter}
@@ -179,7 +175,6 @@ export default function Navbar() {
                         </AnimatePresence>
                     </div>
 
-                    {/* Specialities, Credibility, Our Journey */}
                     {navLinks.slice(2).map((link) => (
                         <motion.div
                             key={link.name}
@@ -252,7 +247,6 @@ export default function Navbar() {
                             {navLinks[1].name}
                         </Link>
 
-                        {/* Treatment accordion (mobile) */}
                         <div>
                             <button
                                 type="button"

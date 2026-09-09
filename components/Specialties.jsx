@@ -20,7 +20,6 @@ const stagger = {
 
 export default function Specialties() {
     return (
-        // SECTION 4: PRECISION RECONSTRUCTIVE SPECIALTIES
         <section
             id="reconstruction-specialties"
             className="bg-[#ffffff] text-black"
@@ -47,13 +46,13 @@ export default function Specialties() {
                     </motion.div>
 
                     <motion.div className="lg:col-span-5 flex justify-center" variants={fadeUp}>
-                        <div className="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden border border-neutral-200 shadow-md bg-white p-2">
+                        <div className="relative w-full max-w-md aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-200 shadow-md bg-white">
                             <Image
                                 src="/images/photos/eye2.webp"
                                 alt="Microsurgical reconstruction of human ocular puzzle"
                                 fill
                                 sizes="(max-width: 1024px) 100vw, 40vw"
-                                className="object-contain p-2"
+                                className="object-cover"
                             />
                         </div>
                     </motion.div>
@@ -66,7 +65,6 @@ export default function Specialties() {
                     viewport={{ once: true, amount: 0.2 }}
                     variants={stagger}
                 >
-                    {/* 01 / CORNEA */}
                     <motion.div
                         className="p-8 rounded-2xl bg-[#ffffff] border border-neutral-200 hover:border-black transition-colors"
                         variants={fadeUp}
@@ -101,7 +99,6 @@ export default function Specialties() {
                         </div>
                     </motion.div>
 
-                    {/* 02 / LENS */}
                     <motion.div
                         className="p-8 rounded-2xl bg-[#ffffff] border border-neutral-200 hover:border-black transition-colors"
                         variants={fadeUp}
@@ -136,7 +133,6 @@ export default function Specialties() {
                         </div>
                     </motion.div>
 
-                    {/* 03 / RETINA */}
                     <motion.div
                         className="p-8 rounded-2xl bg-[#ffffff] border border-neutral-200 hover:border-black transition-colors"
                         variants={fadeUp}

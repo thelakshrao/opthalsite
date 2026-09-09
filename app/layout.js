@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Precision Eye Care — Advanced Visual Ophthalmology",
+  title: "Eyevora Eye Care — Advanced Visual Ophthalmology",
   description:
     "Advanced clinical ophthalmology visualized with precision. Interactive 300-frame anatomical ocular model, sub-micron diagnostics, and microsurgical innovation.",
   keywords: [
@@ -31,10 +31,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Preload the very first eye-animation frame for each breakpoint so
-            it starts downloading before React mounts, eliminating the black
-            flash that shows while EyeAnimation.jsx figures out isMobile and
-            fetches its placeholder image. */}
         <link
           rel="preload"
           as="image"

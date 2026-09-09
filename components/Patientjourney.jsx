@@ -20,7 +20,6 @@ const stagger = {
 
 export default function PatientJourney() {
     return (
-        // SECTION 6: PATIENT JOURNEY / CLINICAL TRUST
         <section
             id="patient-journey"
             className="py-24 sm:py-32 px-4 sm:px-8 lg:px-12 max-w-7xl mx-auto bg-[#ffffff] text-black"
@@ -90,7 +89,7 @@ export default function PatientJourney() {
                         className="p-6 rounded-2xl bg-neutral-50 border border-neutral-200 text-center"
                         variants={fadeUp}
                     >
-                        <div className="text-3xl sm:text-4xl font-black text-black tracking-tight">100+</div>
+                        <div className="text-3xl sm:text-4xl font-black text-black tracking-tight">15,000+</div>
                         <div className="text-xs sm:text-sm font-semibold text-neutral-800 mt-2">Procedures Completed</div>
                     </motion.div>
 

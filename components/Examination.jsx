@@ -77,23 +77,6 @@ function EyeDotPattern({ className = '', width = 360, height = 180 }) {
     );
 }
 
-function ViewAllServicesBadge({ position = 'top' }) {
-    const positionClasses =
-        position === 'top'
-            ? 'top-4 right-4'
-            : 'bottom-4 right-4';
-
-    return (
-        <a
-            href="/service"
-            className={`absolute ${positionClasses} z-20 inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-white/60 text-black text-[11px] sm:text-xs font-semibold tracking-wide shadow-md hover:bg-white transition-colors`}
-        >
-            View All Services
-            <ArrowUpRight className="w-3 h-3" />
-        </a>
-    );
-}
-
 export default function Examination() {
     const [formSubmitted, setFormSubmitted] = useState(false);
     const [formData, setFormData] = useState({
@@ -170,7 +153,6 @@ export default function Examination() {
                                 quality={75}
                                 className="object-cover object-[78%_45%] scale-[1.35]"
                             />
-                            <ViewAllServicesBadge position="top" />
                         </div>
 
                         <div className="mt-6 p-4 rounded-xl bg-black text-white">
@@ -201,7 +183,10 @@ export default function Examination() {
                         transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
                         className="lg:col-span-6"
                     >
-                        <div className="p-2 sm:p-12 rounded-3xl bg-neutral-50 border border-neutral-200 shadow-sm">
+                        <div
+                            id="Examination-form"
+                            className="p-6 sm:p-12 rounded-3xl bg-neutral-50 border border-neutral-200 shadow-sm scroll-mt-24"
+                        >
 
                             <div className="mb-8">
                                 <span className="text-[11px] font-mono uppercase tracking-widest text-neutral-500">
@@ -337,7 +322,6 @@ export default function Examination() {
                                     quality={75}
                                     className="object-cover scale-[1.25]"
                                 />
-                                <ViewAllServicesBadge position="bottom" />
                             </div>
 
                             <div className="mt-6 p-4 rounded-xl bg-black text-white max-w-md mx-auto lg:mx-0">
