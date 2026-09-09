@@ -135,10 +135,13 @@ const ADDITIONAL_TREATMENTS = [
 
 export default function Services() {
   return (
-    <div id="services-section" className="relative min-h-screen bg-black text-white selection:bg-white selection:text-black overflow-hidden">
+    <div
+      id="services-section"
+      className="relative min-h-screen bg-black text-white selection:bg-white selection:text-black overflow-hidden scroll-mt-20 sm:scroll-mt-28"
+    >
       <section
         id="photography-showcase"
-        className="relative w-full py-16 sm:py-24 px-4 sm:px-8 lg:px-12 bg-black text-white overflow-hidden border-b border-white/10"
+        className="relative w-full py-16 sm:py-24 px-4 sm:px-8 lg:px-12 bg-black text-white overflow-hidden border-b border-white/10 scroll-mt-20 sm:scroll-mt-28"
       >
         <div
           className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neutral-800 via-black to-black"

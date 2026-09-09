@@ -112,7 +112,6 @@ const COUNTRY_CODES = [
     { code: "+267", label: "🇧🇼 +267 (BW)", maxLength: 8 },
     { code: "+268", label: "🇸🇿 +268 (SZ)", maxLength: 8 },
     { code: "+269", label: "🇰🇲 +269 (KM)", maxLength: 7 },
-    { code: "+27", label: "🇿🇦 +27 (ZA)", maxLength: 9 },
 
     { code: "+290", label: "🇸🇭 +290 (SH)", maxLength: 5 },
     { code: "+291", label: "🇪🇷 +291 (ER)", maxLength: 7 },
@@ -196,7 +195,6 @@ const COUNTRY_CODES = [
     { code: "+1869", label: "🇰🇳 +1869 (KN)", maxLength: 7 },
     { code: "+1876", label: "🇯🇲 +1876 (JM)", maxLength: 7 },
 
-    { code: "+290", label: "🇸🇭 +290 (SH)", maxLength: 5 },
     { code: "+500", label: "🇫🇰 +500 (FK)", maxLength: 5 },
     { code: "+501", label: "🇧🇿 +501 (BZ)", maxLength: 7 },
     { code: "+502", label: "🇬🇹 +502 (GT)", maxLength: 8 },
@@ -247,24 +245,6 @@ const COUNTRY_CODES = [
     { code: "+856", label: "🇱🇦 +856 (LA)", maxLength: 10 },
     { code: "+880", label: "🇧🇩 +880 (BD)", maxLength: 10 },
     { code: "+886", label: "🇹🇼 +886 (TW)", maxLength: 9 },
-
-    { code: "+960", label: "🇲🇻 +960 (MV)", maxLength: 7 },
-    { code: "+971", label: "🇦🇪 +971 (AE)", maxLength: 9 },
-
-    { code: "+972", label: "🇮🇱 +972 (IL)", maxLength: 9 },
-    { code: "+973", label: "🇧🇭 +973 (BH)", maxLength: 8 },
-    { code: "+974", label: "🇶🇦 +974 (QA)", maxLength: 8 },
-    { code: "+975", label: "🇧🇹 +975 (BT)", maxLength: 8 },
-    { code: "+976", label: "🇲🇳 +976 (MN)", maxLength: 8 },
-
-    { code: "+977", label: "🇳🇵 +977 (NP)", maxLength: 10 },
-
-    { code: "+992", label: "🇹🇯 +992 (TJ)", maxLength: 9 },
-    { code: "+993", label: "🇹🇲 +993 (TM)", maxLength: 8 },
-    { code: "+994", label: "🇦🇿 +994 (AZ)", maxLength: 9 },
-    { code: "+995", label: "🇬🇪 +995 (GE)", maxLength: 9 },
-    { code: "+996", label: "🇰🇬 +996 (KG)", maxLength: 9 },
-    { code: "+998", label: "🇺🇿 +998 (UZ)", maxLength: 9 },
 ];
 
 const fadeUp = {
@@ -400,7 +380,7 @@ export default function GetStarted() {
                                         className="bg-neutral-800 text-white text-xs px-2 py-2 border-r border-white/10 outline-none"
                                     >
                                         {COUNTRY_CODES.map((item) => (
-                                            <option key={item.code} value={item.code}>
+                                            <option key={item.label} value={item.code}>
                                                 {item.label}
                                             </option>
                                         ))}

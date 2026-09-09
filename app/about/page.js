@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
     Eye,
@@ -10,22 +11,18 @@ import {
     HeartHandshake,
     Wallet,
     Cpu,
-    ScanEye,
     Layers,
     Contact,
     Glasses,
-    Sparkles,
-    CalendarCheck,
-    ClipboardCheck,
-    Microscope,
-    CheckCircle2,
     ArrowUpRight,
     Radar,
     Zap,
     Crosshair,
+    CheckCircle2,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import PatientJourney from '@/components/Patientjourney';
+import Footer from '@/components/Footer';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 24 },
@@ -113,7 +110,7 @@ const LENS_TYPES = [
         icon: Crosshair,
         title: 'Toric IOL',
         tag: 'Astigmatism',
-        desc: 'Corrects corneal astigmatism at the same time as cataracts, sharpening uncorrected vision that a standard lens can\u2019t fully address.',
+        desc: 'Corrects corneal astigmatism at the same time as cataracts, sharpening uncorrected vision that a standard lens can’t fully address.',
     },
     {
         icon: Contact,
@@ -123,35 +120,12 @@ const LENS_TYPES = [
     },
 ];
 
-const JOURNEY_STEPS = [
-    {
-        icon: CalendarCheck,
-        title: 'Consultation & History',
-        desc: 'We start by listening — your vision goals, medical history, and lifestyle shape every recommendation that follows.',
-    },
-    {
-        icon: ScanEye,
-        title: 'Diagnostics & Insurance Check',
-        desc: 'A full diagnostic workup pairs with a free insurance and coverage verification, so you know the real cost before deciding anything.',
-    },
-    {
-        icon: ClipboardCheck,
-        title: 'Personalized Treatment Plan',
-        desc: 'Your surgeon walks you through every option in plain language, with honest trade-offs — never a hard sell.',
-    },
-    {
-        icon: Eye,
-        title: 'Procedure Day',
-        desc: 'Most procedures take minutes per eye, performed in a controlled, sterile environment with live imaging guidance.',
-    },
-    {
-        icon: HeartHandshake,
-        title: 'Recovery & Follow-Up',
-        desc: 'Scheduled follow-ups and a direct line to our care team make sure your recovery stays on track long after you leave.',
-    },
-];
-
 export default function AboutPage() {
+    const handleAnchorClick = (e, hash) => {
+        e.preventDefault();
+        window.location.href = `/${hash}`;
+    };
+
     return (
         <div className="relative min-h-screen bg-white text-black">
             <Navbar />
@@ -619,18 +593,17 @@ export default function AboutPage() {
                             options, and your insurance coverage — no obligation, no guesswork.
                         </motion.p>
                         <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                            <Link href="/#consultation-patient">
-                                <motion.span
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black text-sm font-semibold tracking-wide hover:bg-neutral-200 transition-colors"
-                                >
-                                    Book Consultation
-                                    <ArrowUpRight className="w-4 h-4" />
-                                </motion.span>
+                            <Link
+                                href="/#Examination-form"
+                                onClick={(e) => handleAnchorClick(e, '#Examination-form')}
+                                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black text-sm font-semibold tracking-wide hover:bg-neutral-200 transition-colors"
+                            >
+                                Book Consultation
+                                <ArrowUpRight className="w-4 h-4" />
                             </Link>
                             <Link
-                                href="/#photography-showcase"
+                                href="/#services-section"
+                                onClick={(e) => handleAnchorClick(e, '#services-section')}
                                 className="px-6 py-3 rounded-full bg-transparent text-white border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors"
                             >
                                 Explore Treatments
@@ -640,36 +613,7 @@ export default function AboutPage() {
                 </section>
             </main>
 
-            <footer className="py-12 px-4 sm:px-8 lg:px-12 bg-[#0a0a0a] text-neutral-400 text-xs border-t border-white/10">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-3">
-                        <Image
-                            src="/images/logo/eyevora2.png"
-                            alt="Eyevora"
-                            width={120}
-                            height={32}
-                            className="h-5 w-auto object-contain"
-                        />
-                        <span className="text-neutral-600">|</span>
-                        <span className="text-neutral-400">© 2026 EyevoraCare. All rights reserved.</span>
-                    </div>
-
-                    <div className="flex items-center gap-6 text-neutral-400">
-                        <Link href="/#consultation-patient" className="hover:text-white transition-colors">
-                            Patient Intake
-                        </Link>
-                        <Link href="/#photography-showcase" className="hover:text-white transition-colors">
-                            Vision Macro
-                        </Link>
-                        <Link href="/#reconstruction-specialties" className="hover:text-white transition-colors">
-                            Specialties
-                        </Link>
-                        <Link href="/#surgical-credibility" className="hover:text-white transition-colors">
-                            Credibility
-                        </Link>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }
