@@ -7,10 +7,23 @@ import { motion } from "framer-motion";
 import emailjs from "@emailjs/browser";
 import Navbar from "@/components/Navbar";
 import { diseaseData } from "@/data/diseaseContent";
+import Footer from "@/components/Footer";
 
 const EMAILJS_SERVICE_ID = "service_nx91wke";
 const EMAILJS_TEMPLATE_ID = "template_loos9xj";
 const EMAILJS_PUBLIC_KEY = "k3ORwrN11DA_MndsG";
+
+const COUNTRY_CODES = [
+    { code: "+91", label: "🇮🇳 +91 (IN)", maxLength: 10 },
+    { code: "+1", label: "🇺🇸 +1 (US/CA)", maxLength: 10 },
+    { code: "+44", label: "🇬🇧 +44 (UK)", maxLength: 11 },
+    { code: "+61", label: "🇦🇺 +61 (AU)", maxLength: 9 },
+    { code: "+971", label: "🇦🇪 +971 (UAE)", maxLength: 9 },
+    { code: "+81", label: "🇯🇵 +81 (JP)", maxLength: 10 },
+    { code: "+49", label: "🇩🇪 +49 (DE)", maxLength: 11 },
+    { code: "+33", label: "🇫🇷 +33 (FR)", maxLength: 9 },
+    { code: "+65", label: "🇸🇬 +65 (SG)", maxLength: 8 },
+];
 
 const EYE_VIEWS = {
     front: "/images/photos/front.png",
@@ -56,9 +69,14 @@ export default function TreatmentPage() {
     const anchor = { x: 80, y: 20 };
 
     const [openFaq, setOpenFaq] = useState(0);
+    const [countryCode, setCountryCode] = useState("+91");
     const [form, setForm] = useState({ name: "", phone: "", treatment: d?.name || "", message: "" });
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    const selectedCountry = useMemo(() => {
+        return COUNTRY_CODES.find((c) => c.code === countryCode) || COUNTRY_CODES[0];
+    }, [countryCode]);
 
     useEffect(() => {
         if (d?.name) {
@@ -136,12 +154,19 @@ export default function TreatmentPage() {
 
     function handleChange(e) {
         const { name, value } = e.target;
-        setForm((f) => ({ ...f, [name]: value }));
+        if (name === "phone") {
+            const digitsOnly = value.replace(/\D/g, "").slice(0, selectedCountry.maxLength);
+            setForm((f) => ({ ...f, phone: digitsOnly }));
+        } else {
+            setForm((f) => ({ ...f, [name]: value }));
+        }
     }
 
     async function handleSubmit(e) {
         e.preventDefault();
         setLoading(true);
+
+        const fullPhoneNumber = `${countryCode} ${form.phone}`;
 
         try {
             await emailjs.send(
@@ -149,7 +174,7 @@ export default function TreatmentPage() {
                 EMAILJS_TEMPLATE_ID,
                 {
                     from_name: form.name,
-                    phone: form.phone,
+                    phone: fullPhoneNumber,
                     treatment: form.treatment,
                     message: form.message || "No message provided",
                 },
@@ -485,15 +510,29 @@ export default function TreatmentPage() {
                                             <label className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
                                                 Phone Number *
                                             </label>
-                                            <input
-                                                type="tel"
-                                                name="phone"
-                                                required
-                                                value={form.phone}
-                                                onChange={handleChange}
-                                                placeholder="(555) 000-0000"
-                                                className="mt-1 w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-white/50"
-                                            />
+                                            <div className="mt-1 flex rounded-lg border border-white/15 bg-white/5 overflow-hidden focus-within:border-white/50">
+                                                <select
+                                                    value={countryCode}
+                                                    onChange={(e) => setCountryCode(e.target.value)}
+                                                    className="bg-neutral-900 text-white text-xs px-2 py-2 border-r border-white/15 outline-none"
+                                                >
+                                                    {COUNTRY_CODES.map((item) => (
+                                                        <option key={item.code} value={item.code}>
+                                                            {item.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <input
+                                                    type="tel"
+                                                    name="phone"
+                                                    required
+                                                    value={form.phone}
+                                                    onChange={handleChange}
+                                                    maxLength={selectedCountry.maxLength}
+                                                    placeholder={`${selectedCountry.maxLength} digits`}
+                                                    className="w-full bg-transparent px-3 py-2 text-xs text-white placeholder-white/30 outline-none"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -579,6 +618,7 @@ export default function TreatmentPage() {
                     </div>
                 </section>
             )}
+            <Footer />
         </motion.div>
     );
 }
