@@ -1,23 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
+import { diseaseData } from '@/data/diseaseContent';
+
+// Build the treatment list once from the single source of truth (diseaseData).
+// Any condition added/removed there automatically reflects in this dropdown.
+const TREATMENT_LIST = Object.values(diseaseData).map((d) => ({
+    id: d.id,
+    name: d.name,
+    category: d.category,
+}));
 
 export default function Navbar() {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false); // mobile menu
+    const [isMobileTreatmentOpen, setIsMobileTreatmentOpen] = useState(false);
+    const [isTreatmentHover, setIsTreatmentHover] = useState(false);
+    const closeTimeout = useRef(null);
     const pathname = usePathname();
     const isHome = pathname === '/';
 
-    // type: 'anchor'  -> scrolls to a section on the homepage (href is the section id, e.g. '#hero-animation')
-    // type: 'page'    -> navigates to a real route (href is a real Next.js page, e.g. '/about')
+    // type: 'anchor' -> scrolls to a section on the homepage (href is the section id)
+    // type: 'page'   -> navigates to a real route
     const navLinks = [
         { name: 'Home', href: '#hero-animation', type: 'anchor' },
         { name: 'About us', href: '/about', type: 'page' },
-        { name: 'Services', href: '#photography-showcase', type: 'anchor' },
-        { name: 'Specialties', href: '#reconstruction-specialties', type: 'anchor' },
+        // "Specialities" now routes to the Services section (Services.jsx)
+        { name: 'Specialities', href: '#services-section', type: 'anchor' },
         { name: 'Credibility', href: '#surgical-credibility', type: 'anchor' },
         { name: 'Our Journey', href: '#patient-journey', type: 'anchor' },
     ];
@@ -25,7 +38,6 @@ export default function Navbar() {
     const bookHref = '#consultation-patient';
 
     const handleAnchorClick = (e, hash) => {
-        // If we're already on the homepage, scroll smoothly without a full navigation.
         if (isHome) {
             e.preventDefault();
             setIsOpen(false);
@@ -34,14 +46,21 @@ export default function Navbar() {
                 targetElement.scrollIntoView({ behavior: 'smooth' });
             }
         } else {
-            // Not on the homepage: let the Link navigate to "/" + hash,
-            // the browser/Next.js will land on the homepage and jump to the section.
             setIsOpen(false);
         }
     };
 
     const handlePageClick = () => {
         setIsOpen(false);
+    };
+
+    const handleTreatmentMouseEnter = () => {
+        if (closeTimeout.current) clearTimeout(closeTimeout.current);
+        setIsTreatmentHover(true);
+    };
+
+    const handleTreatmentMouseLeave = () => {
+        closeTimeout.current = setTimeout(() => setIsTreatmentHover(false), 150);
     };
 
     return (
@@ -69,7 +88,99 @@ export default function Navbar() {
                 </Link>
 
                 <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs font-medium tracking-wide text-neutral-300">
-                    {navLinks.map((link) => (
+                    {/* Home */}
+                    <motion.div
+                        whileHover={{ scale: 1.08, color: '#ffffff' }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                        className="py-1"
+                    >
+                        <Link
+                            href={isHome ? navLinks[0].href : `/${navLinks[0].href}`}
+                            onClick={(e) => handleAnchorClick(e, navLinks[0].href)}
+                            className="cursor-pointer transition-colors"
+                        >
+                            {navLinks[0].name}
+                        </Link>
+                    </motion.div>
+
+                    {/* About us */}
+                    <motion.div
+                        whileHover={{ scale: 1.08, color: '#ffffff' }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                        className="py-1"
+                    >
+                        <Link href={navLinks[1].href} onClick={handlePageClick} className="cursor-pointer transition-colors">
+                            {navLinks[1].name}
+                        </Link>
+                    </motion.div>
+
+                    {/* Treatment - hover dropdown with scrollable list */}
+                    <div
+                        className="relative py-1"
+                        onMouseEnter={handleTreatmentMouseEnter}
+                        onMouseLeave={handleTreatmentMouseLeave}
+                    >
+                        <motion.div
+                            whileHover={{ scale: 1.08, color: '#ffffff' }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0.2, ease: 'easeInOut' }}
+                            className="flex items-center gap-1 cursor-pointer select-none"
+                        >
+                            <Link
+                                href={isHome ? '#photography-showcase' : '/#photography-showcase'}
+                                onClick={(e) => handleAnchorClick(e, '#photography-showcase')}
+                                className="cursor-pointer transition-colors"
+                            >
+                                Treatment
+                            </Link>
+                            <ChevronDown
+                                className={`w-3 h-3 transition-transform duration-200 ${isTreatmentHover ? 'rotate-180' : ''}`}
+                            />
+                        </motion.div>
+
+                        <AnimatePresence>
+                            {isTreatmentHover && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 8 }}
+                                    transition={{ duration: 0.18, ease: 'easeOut' }}
+                                    className="absolute left-1/2 top-full mt-3 w-72 -translate-x-1/2 rounded-2xl border border-white/10 bg-[#0a0a0a] shadow-2xl overflow-hidden"
+                                >
+                                    <div className="px-4 py-3 border-b border-white/10">
+                                        <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-500">
+                                            All Treatments
+                                        </span>
+                                    </div>
+                                    <div
+                                        data-lenis-prevent
+                                        className="max-h-80 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+                                    >
+                                        {TREATMENT_LIST.map((t) => (
+                                            <Link
+                                                key={t.id}
+                                                href={`/treatment/${t.id}`}
+                                                onClick={() => setIsTreatmentHover(false)}
+                                                className="block px-4 py-2.5 hover:bg-white/10 transition-colors border-b border-white/5 last:border-b-0"
+                                            >
+                                                <span className="block text-xs font-semibold text-white">
+                                                    {t.name}
+                                                </span>
+                                                <span className="block text-[10px] text-neutral-500 mt-0.5 truncate">
+                                                    {t.category}
+                                                </span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Specialities, Credibility, Our Journey */}
+                    {navLinks.slice(2).map((link) => (
                         <motion.div
                             key={link.name}
                             whileHover={{ scale: 1.08, color: '#ffffff' }}
@@ -77,19 +188,13 @@ export default function Navbar() {
                             transition={{ duration: 0.2, ease: 'easeInOut' }}
                             className="py-1"
                         >
-                            {link.type === 'page' ? (
-                                <Link href={link.href} onClick={handlePageClick} className="cursor-pointer transition-colors">
-                                    {link.name}
-                                </Link>
-                            ) : (
-                                <Link
-                                    href={isHome ? link.href : `/${link.href}`}
-                                    onClick={(e) => handleAnchorClick(e, link.href)}
-                                    className="cursor-pointer transition-colors"
-                                >
-                                    {link.name}
-                                </Link>
-                            )}
+                            <Link
+                                href={isHome ? link.href : `/${link.href}`}
+                                onClick={(e) => handleAnchorClick(e, link.href)}
+                                className="cursor-pointer transition-colors"
+                            >
+                                {link.name}
+                            </Link>
                         </motion.div>
                     ))}
                 </nav>
@@ -130,28 +235,77 @@ export default function Navbar() {
             </div>
 
             {isOpen && (
-                <div className="lg:hidden bg-[#0a0a0a] border-b border-white/10 px-6 py-6 space-y-4">
+                <div
+                    data-lenis-prevent
+                    className="lg:hidden bg-[#0a0a0a] border-b border-white/10 px-6 py-6 space-y-4 max-h-[80vh] overflow-y-auto overscroll-contain"
+                >
                     <nav className="flex flex-col gap-4 text-sm font-medium text-neutral-300">
-                        {navLinks.map((link) => (
-                            link.type === 'page' ? (
-                                <Link
-                                    key={link.name}
-                                    href={link.href}
-                                    onClick={handlePageClick}
-                                    className="hover:text-white transition-colors"
-                                >
-                                    {link.name}
-                                </Link>
-                            ) : (
-                                <Link
-                                    key={link.name}
-                                    href={isHome ? link.href : `/${link.href}`}
-                                    onClick={(e) => handleAnchorClick(e, link.href)}
-                                    className="hover:text-white transition-colors"
-                                >
-                                    {link.name}
-                                </Link>
-                            )
+                        <Link
+                            href={isHome ? navLinks[0].href : `/${navLinks[0].href}`}
+                            onClick={(e) => handleAnchorClick(e, navLinks[0].href)}
+                            className="hover:text-white transition-colors"
+                        >
+                            {navLinks[0].name}
+                        </Link>
+
+                        <Link href={navLinks[1].href} onClick={handlePageClick} className="hover:text-white transition-colors">
+                            {navLinks[1].name}
+                        </Link>
+
+                        {/* Treatment accordion (mobile) */}
+                        <div>
+                            <button
+                                type="button"
+                                onClick={() => setIsMobileTreatmentOpen((v) => !v)}
+                                className="flex w-full items-center justify-between hover:text-white transition-colors"
+                            >
+                                <span>Treatment</span>
+                                <ChevronDown
+                                    className={`w-4 h-4 transition-transform duration-200 ${isMobileTreatmentOpen ? 'rotate-180' : ''}`}
+                                />
+                            </button>
+
+                            <AnimatePresence>
+                                {isMobileTreatmentOpen && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div
+                                            data-lenis-prevent
+                                            className="mt-2 max-h-64 overflow-y-auto overscroll-contain rounded-xl border border-white/10 bg-white/5 divide-y divide-white/5"
+                                        >
+                                            {TREATMENT_LIST.map((t) => (
+                                                <Link
+                                                    key={t.id}
+                                                    href={`/treatment/${t.id}`}
+                                                    onClick={() => {
+                                                        setIsOpen(false);
+                                                        setIsMobileTreatmentOpen(false);
+                                                    }}
+                                                    className="block px-3 py-2.5 text-xs text-neutral-300 hover:text-white hover:bg-white/10 transition-colors"
+                                                >
+                                                    {t.name}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {navLinks.slice(2).map((link) => (
+                            <Link
+                                key={link.name}
+                                href={isHome ? link.href : `/${link.href}`}
+                                onClick={(e) => handleAnchorClick(e, link.href)}
+                                className="hover:text-white transition-colors"
+                            >
+                                {link.name}
+                            </Link>
                         ))}
                     </nav>
                     <div className="pt-4 border-t border-white/10">

@@ -1,9 +1,23 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, ShieldCheck, Activity, Layers, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import {
+  Eye,
+  ShieldCheck,
+  Activity,
+  Layers,
+  ArrowUpRight,
+  Sparkles,
+  Droplet,
+  CircleDot,
+  Focus,
+  Scan,
+  Crosshair,
+  AlertCircle
+} from 'lucide-react';
 
 function useEyeDots(width = 360, height = 180, step = 10) {
   return useMemo(() => {
@@ -74,63 +88,63 @@ function SingleCornerEyeDotPattern({ className = '', width = 360, height = 180 }
   );
 }
 
-const SERVICES_DATA = [
+const PRIMARY_SERVICES = [
   {
     id: 'lasik',
     title: 'Lasik Eye Surgery',
     subtitle: 'Blade-Free Refractive Precision',
     icon: Eye,
-    tag: 'Refractive Freedom',
-    description: 'Computer-guided excimer and femtosecond laser reshaping of the cornea to correct myopia, hyperopia, and astigmatism in minutes.',
-    highlights: ['100% Blade-Free', 'Under 15 Min Procedure', 'Rapid 24-48h Recovery'],
   },
   {
     id: 'cataract',
     title: 'Cataract Surgery',
     subtitle: 'Advanced Premium IOL Implants',
     icon: Layers,
-    tag: 'Lens Restoration',
-    description: 'Micro-incisional phacoemulsification replacing clouded natural lenses with advanced trifocal, EDOF, or toric intraocular implants.',
-    highlights: ['Femtosecond Precision', 'Custom Trifocal/Toric', 'Sutureless Day-Care'],
   },
   {
-    id: 'retinal',
+    id: 'retinal-detachment',
     title: 'Retinal Detachment',
     subtitle: 'Vitreoretinal Surgical Repair',
     icon: Activity,
-    tag: 'Macular Preservation',
-    description: 'Urgent 27-gauge sutureless micro-vitrectomy, pneumatic retinopexy, and laser photocoagulation to secure detached retinal layers.',
-    highlights: ['27G Micro-Vitrectomy', 'Sub-Micron OCT Alignment', 'Emergency Care Protocol'],
   },
   {
     id: 'glaucoma',
     title: 'Glaucoma Treatment',
     subtitle: 'Intraocular Pressure Control',
     icon: ShieldCheck,
-    tag: 'Optic Nerve Safety',
-    description: 'Selective Laser Trabeculoplasty (SLT), MIGS micro-stents, and medical therapy to regulate fluid drainage and safeguard optic nerve fibers.',
-    highlights: ['SLT Laser Therapy', 'MIGS Micro-Implants', '24/7 IOP Monitoring'],
   },
 ];
 
+const ADDITIONAL_TREATMENTS = [
+  { id: 'dry-eye-syndrome', title: 'Dry Eye Syndrome', category: 'Surface', icon: Droplet },
+  { id: 'conjunctivitis', title: 'Conjunctivitis', category: 'Infectious', icon: Eye },
+  { id: 'macular-degeneration', title: 'Macular Degeneration', category: 'Retina', icon: Focus },
+  { id: 'diabetic-retinopathy', title: 'Diabetic Retinopathy', category: 'Vascular', icon: Activity },
+  { id: 'pterygium', title: 'Pterygium Removal', category: 'Corneal', icon: Sparkles },
+  { id: 'keratoconus', title: 'Keratoconus (CXL)', category: 'Corneal', icon: Crosshair },
+  { id: 'uveitis', title: 'Uveitis Therapy', category: 'Inflammatory', icon: ShieldCheck },
+  { id: 'corneal-ulcer', title: 'Corneal Ulcer Care', category: 'Emergency', icon: AlertCircle },
+  { id: 'strabismus', title: 'Strabismus Surgery', category: 'Muscle', icon: CircleDot },
+  { id: 'blepharitis', title: 'Blepharitis Hygiene', category: 'Lid Care', icon: Scan },
+  { id: 'stye-chalazion', title: 'Stye & Chalazion', category: 'Lid Care', icon: CircleDot },
+  { id: 'vitreous-hemorrhage', title: 'Vitreous Hemorrhage', category: 'Vitreous', icon: Layers },
+  { id: 'optic-neuritis', title: 'Optic Neuritis', category: 'Neuro-Opth', icon: ShieldCheck },
+  { id: 'retinitis-pigmentosa', title: 'Retinitis Pigmentosa', category: 'Genetic', icon: Focus },
+  { id: 'retinoblastoma', title: 'Retinoblastoma Care', category: 'Oncology', icon: AlertCircle },
+];
+
 export default function Services() {
-  const [selectedService, setSelectedService] = useState('lasik');
-
   return (
-    <div className="relative min-h-screen bg-black text-white selection:bg-white selection:text-black overflow-hidden">
-
-      {/* CORE SERVICES SECTION */}
+    <div id="services-section" className="relative min-h-screen bg-black text-white selection:bg-white selection:text-black overflow-hidden">
       <section
         id="photography-showcase"
-        className="relative w-full py-16 sm:py-32 px-4 sm:px-8 lg:px-12 bg-black text-white overflow-hidden border-b border-white/10"
+        className="relative w-full py-16 sm:py-24 px-4 sm:px-8 lg:px-12 bg-black text-white overflow-hidden border-b border-white/10"
       >
-        {/* CSS Radial Glow for mobile instead of costly image filters */}
         <div
           className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neutral-800 via-black to-black"
           aria-hidden="true"
         />
 
-        {/* SVG Dot animation rendered ONLY on desktop (hidden on mobile to save GPU) */}
         <SingleCornerEyeDotPattern
           className="hidden md:block absolute -bottom-10 -left-16 z-0 opacity-70"
           width={360}
@@ -138,8 +152,6 @@ export default function Services() {
         />
 
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16">
-
-          {/* LEFT: MACRO EYE GRAPHIC */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -177,7 +189,6 @@ export default function Services() {
             </div>
           </motion.div>
 
-          {/* RIGHT: 2X2 GRID OF MAIN SERVICES */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -194,134 +205,107 @@ export default function Services() {
             </h1>
 
             <p className="text-xs sm:text-base text-neutral-400 font-light mb-6">
-              Sub-micron surgical precision across four core disciplines of modern vision care.
+              Sub-micron surgical precision across core disciplines of modern vision care.
             </p>
 
-            {/* 2X2 GRID FOR MOBILE & DESKTOP -- cards stagger in one by one */}
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              variants={{
-                hidden: {},
-                visible: { transition: { staggerChildren: 0.08 } },
-              }}
-              className="grid grid-cols-2 gap-2.5 sm:gap-4"
-            >
-              {SERVICES_DATA.map((service, index) => {
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+              {PRIMARY_SERVICES.map((service, index) => {
                 const IconComponent = service.icon;
-                const isSelected = selectedService === service.id;
 
                 return (
-                  <motion.div
+                  <Link
                     key={service.id}
-                    variants={{
-                      hidden: { opacity: 0, y: 16 },
-                      visible: { opacity: 1, y: 0 },
-                    }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    whileHover={{ y: -3 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => setSelectedService(service.id)}
-                    className={`relative p-3.5 sm:p-5 rounded-2xl cursor-pointer transition-colors duration-200 flex flex-col justify-between border ${isSelected
-                      ? 'bg-neutral-900 border-white text-white shadow-lg ring-1 ring-white/40'
-                      : 'bg-neutral-950 border-white/10 text-neutral-300 hover:border-white/30'
-                      }`}
+                    href={`/treatment/${service.id}`}
+                    className="block"
                   >
-                    <div>
-                      <div className="flex items-center justify-between mb-2.5">
-                        <div className={`p-2 rounded-xl ${isSelected ? 'bg-white text-black' : 'bg-white/10 text-white'}`}>
-                          <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <motion.div
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.96 }}
+                      className="relative p-3.5 sm:p-5 rounded-2xl bg-neutral-950 border border-white/10 text-neutral-300 hover:border-white/40 hover:bg-neutral-900 transition-all duration-200 flex flex-col justify-between h-full"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2.5">
+                          <div className="p-2 rounded-xl bg-white/10 text-white">
+                            <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </div>
+                          <span className="text-[10px] font-mono text-neutral-500 font-bold">
+                            0{index + 1}
+                          </span>
                         </div>
-                        <span className="text-[10px] font-mono text-neutral-500 font-bold">
-                          0{index + 1}
-                        </span>
+
+                        <h2 className="text-xs sm:text-lg font-bold text-white tracking-tight leading-snug">
+                          {service.title}
+                        </h2>
+
+                        <p className="text-[10px] sm:text-xs text-neutral-400 font-light mt-1 line-clamp-2">
+                          {service.subtitle}
+                        </p>
                       </div>
 
-                      <h2 className="text-xs sm:text-lg font-bold text-white tracking-tight leading-snug">
-                        {service.title}
-                      </h2>
-
-                      <p className="text-[10px] sm:text-xs text-neutral-400 font-light mt-1 line-clamp-2">
-                        {service.subtitle}
-                      </p>
-                    </div>
-
-                    <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold">
-                      <span className={isSelected ? 'text-white' : 'text-neutral-400'}>
-                        {isSelected ? 'Active' : 'Details'}
-                      </span>
-                      <ArrowUpRight className={`w-3 h-3 transition-transform ${isSelected ? 'rotate-45 text-white' : 'text-neutral-500'}`} />
-                    </div>
-                  </motion.div>
+                      <div className="mt-4 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-neutral-400 hover:text-white">
+                        <span>View Details</span>
+                        <ArrowUpRight className="w-3 h-3 text-neutral-500" />
+                      </div>
+                    </motion.div>
+                  </Link>
                 );
               })}
-            </motion.div>
+            </div>
           </motion.div>
         </div>
 
-        {/* SELECTED SERVICE DETAILS PANEL -- crossfades/slides in whenever the selection changes */}
-        <AnimatePresence mode="wait">
-          {selectedService && (() => {
-            const active = SERVICES_DATA.find((s) => s.id === selectedService);
-            if (!active) return null;
-            const Icon = active.icon;
+        <div className="relative z-10 max-w-7xl mx-auto mt-16 sm:mt-24">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-neutral-400">
+                Specialized Conditions
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                Additional Eye Treatments
+              </h2>
+            </div>
+            <span className="text-xs font-mono text-neutral-500">
+              Scroll →
+            </span>
+          </div>
 
-            return (
-              <motion.div
-                key={active.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="mt-8 sm:mt-12 max-w-7xl mx-auto p-5 sm:p-10 rounded-2xl sm:rounded-3xl bg-neutral-950 border border-white/15 relative z-10"
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                  <div className="lg:col-span-7">
-                    <div className="flex items-center gap-2.5 mb-2.5">
-                      <div className="p-1.5 rounded-lg bg-white/10 text-white">
-                        <Icon className="w-4 h-4" />
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+            {ADDITIONAL_TREATMENTS.map((item) => {
+              const ItemIcon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={`/treatment/${item.id}`}
+                  className="shrink-0 w-60 sm:w-64"
+                >
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="p-4 rounded-2xl bg-neutral-950 border border-white/10 hover:border-white/30 transition-all duration-200 flex flex-col justify-between h-36"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono text-neutral-400 uppercase">
+                          {item.category}
+                        </span>
+                        <ItemIcon className="w-4 h-4 text-neutral-400" />
                       </div>
-                      <span className="text-[11px] sm:text-xs font-mono tracking-widest text-neutral-400 uppercase">
-                        {active.subtitle}
-                      </span>
+                      <h3 className="text-sm font-bold text-white tracking-tight line-clamp-1">
+                        {item.title}
+                      </h3>
                     </div>
 
-                    <h3 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
-                      {active.title}
-                    </h3>
-
-                    <p className="mt-3 text-xs sm:text-base text-neutral-300 font-light leading-relaxed">
-                      {active.description}
-                    </p>
-
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      {active.highlights.map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] text-neutral-200">
-                          <CheckCircle2 className="w-3 h-3 text-white" />
-                          <span>{item}</span>
-                        </div>
-                      ))}
+                    <div className="flex items-center justify-between text-[11px] font-medium text-neutral-400 border-t border-white/5 pt-2">
+                      <span>Learn More</span>
+                      <ArrowUpRight className="w-3 h-3 text-neutral-500" />
                     </div>
-                  </div>
-
-                  <div className="lg:col-span-5 flex flex-col gap-3">
-                    <motion.a
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      href="#consultation-patient"
-                      className="w-full py-3.5 rounded-full bg-white text-black text-center text-xs sm:text-sm font-bold tracking-wide hover:bg-neutral-200 transition-colors shadow-md"
-                    >
-                      Book Consultation for {active.title} →
-                    </motion.a>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })()}
-        </AnimatePresence>
+                  </motion.div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </section>
-
     </div>
   );
 }
