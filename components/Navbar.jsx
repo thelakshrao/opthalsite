@@ -41,7 +41,7 @@ export default function Navbar() {
                 window.location.hash = hash;
             }
         } else {
-            window.location.href = `/${hash}`;
+            router.push(`/${hash}`);
         }
     };
 

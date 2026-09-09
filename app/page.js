@@ -13,18 +13,34 @@ import Footer from '@/components/Footer';
 
 export default function Home() {
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash) {
-      const hash = window.location.hash;
+    if (typeof window === 'undefined' || !window.location.hash) return;
+    const hash = window.location.hash;
 
-      const timer = setTimeout(() => {
-        const targetElement = document.querySelector(hash);
-        if (targetElement) {
-          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 250);
+    let rafId = null;
+    let attempts = 0;
+    const maxAttempts = 60; // ~1s ceiling at 60fps, well under the old fixed 250ms in the slow case
 
-      return () => clearTimeout(timer);
-    }
+    const tryScroll = () => {
+      const targetElement = document.querySelector(hash);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      attempts += 1;
+      if (attempts < maxAttempts) {
+        rafId = requestAnimationFrame(tryScroll);
+      }
+    };
+
+    // requestAnimationFrame instead of a fixed setTimeout: it fires on the
+    // very next paint the target element exists in, so on a fast client-side
+    // transition this scrolls immediately instead of always waiting 250ms,
+    // while still retrying if the section hasn't mounted yet on a slow one.
+    rafId = requestAnimationFrame(tryScroll);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (

@@ -121,9 +121,11 @@ const LENS_TYPES = [
 ];
 
 export default function AboutPage() {
+    const router = useRouter();
+
     const handleAnchorClick = (e, hash) => {
         e.preventDefault();
-        window.location.href = `/${hash}`;
+        router.push(`/${hash}`);
     };
 
     return (
