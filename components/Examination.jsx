@@ -369,7 +369,7 @@ export default function Examination() {
     return (
         <section
             id="consultation-patient"
-            className="relative w-full pt-16 sm:pt-24 pb-28 sm:pb-26 bg-[#ffffff] text-black z-20 overflow-hidden transform-gpu"
+            className="relative w-full max-w-full pt-16 sm:pt-24 pb-28 sm:pb-26 bg-[#ffffff] text-black z-20 overflow-hidden transform-gpu"
         >
             <div
                 className="absolute top-0 inset-x-0 h-28 pointer-events-none bg-gradient-to-b from-transparent via-white/80 to-white z-30 flex items-center justify-center pt-2"
@@ -460,7 +460,7 @@ export default function Examination() {
                     >
                         <div
                             id="Examination-form"
-                            className="p-6 sm:p-12 rounded-3xl bg-neutral-50 border border-neutral-200 shadow-sm scroll-mt-24"
+                            className="p-6 sm:p-12 rounded-3xl bg-neutral-50 border border-neutral-200 shadow-sm scroll-mt-24 sm:scroll-mt-28"
                         >
 
                             <div className="mb-8">

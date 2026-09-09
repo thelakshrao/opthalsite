@@ -13,27 +13,25 @@ import Footer from '@/components/Footer';
 
 export default function Home() {
   useEffect(() => {
-    // Check if the URL contains a hash fragment (e.g., #Examination-form or #services-section)
     if (typeof window !== 'undefined' && window.location.hash) {
       const hash = window.location.hash;
 
-      // Small delay allows mobile DOM/images to finish layout sizing before scrolling
       const timer = setTimeout(() => {
         const targetElement = document.querySelector(hash);
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      }, 200);
+      }, 250);
 
       return () => clearTimeout(timer);
     }
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#ffffff] text-black">
+    <div className="relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#ffffff] text-black">
       <Navbar />
 
-      <main className="pt-16 sm:pt-20">
+      <main className="pt-16 sm:pt-20 w-full max-w-full overflow-x-hidden">
         <EyeScrollSection />
         <Examination />
         <Services />
