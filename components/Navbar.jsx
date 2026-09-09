@@ -3,16 +3,11 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { diseaseData } from '@/data/diseaseContent';
+import { treatmentIndex as TREATMENT_LIST } from '@/data/treatmentIndex';
 
-const TREATMENT_LIST = Object.values(diseaseData).map((d) => ({
-    id: d.id,
-    name: d.name,
-    category: d.category,
-}));
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -21,6 +16,7 @@ export default function Navbar() {
     const closeTimeout = useRef(null);
     const pathname = usePathname();
     const isHome = pathname === '/';
+    const router = useRouter();
 
     const navLinks = [
         { name: 'Home', href: '#hero-animation', type: 'anchor' },

@@ -30,7 +30,6 @@ const stagger = {
 
 export default function Credibility() {
     return (
-        // SECTION 5: SURGICAL CREDIBILITY
         <section
             id="surgical-credibility"
             className="relative py-28 sm:py-36 px-4 sm:px-8 lg:px-12 bg-[#000000] text-white border-t border-white/10 overflow-hidden"

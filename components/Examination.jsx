@@ -369,7 +369,7 @@ export default function Examination() {
     return (
         <section
             id="consultation-patient"
-            className="relative w-full max-w-full pt-16 sm:pt-24 pb-28 sm:pb-26 bg-[#ffffff] text-black z-20 overflow-hidden transform-gpu"
+            className="relative w-full max-w-full pt-16 sm:pt-24 pb-28 sm:pb-26 bg-white text-black z-20 overflow-hidden transform-gpu"
         >
             <div
                 className="absolute top-0 inset-x-0 h-28 pointer-events-none bg-gradient-to-b from-transparent via-white/80 to-white z-30 flex items-center justify-center pt-2"

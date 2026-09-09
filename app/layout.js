@@ -36,7 +36,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="overflow-x-hidden">
+    // overflow-x-clip, not overflow-x-hidden — see globals.css comment.
+    // hidden here would force html into an internal scroll container and
+    // break position:sticky further down the tree (EyeScrollSection).
+    <html lang="en" className="overflow-x-clip">
       <head>
         <link
           rel="preload"
@@ -51,7 +54,7 @@ export default function RootLayout({ children }) {
           media="(max-width: 767px)"
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased w-full max-w-full overflow-x-hidden`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased w-full max-w-full overflow-x-clip`}>
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>
     </html>

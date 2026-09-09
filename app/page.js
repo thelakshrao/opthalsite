@@ -28,10 +28,13 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#ffffff] text-black">
+    // overflow-x-clip, not overflow-x-hidden — these wrap EyeScrollSection
+    // directly, and `hidden` here was the main cause of its sticky pin not
+    // holding (see globals.css comment for the full explanation).
+    <div className="relative min-h-screen w-full max-w-full overflow-x-clip bg-[#ffffff] text-black">
       <Navbar />
 
-      <main className="pt-16 sm:pt-20 w-full max-w-full overflow-x-hidden">
+      <main className="pt-16 sm:pt-20 w-full max-w-full overflow-x-clip">
         <EyeScrollSection />
         <Examination />
         <Services />

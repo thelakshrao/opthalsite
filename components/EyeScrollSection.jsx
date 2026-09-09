@@ -7,7 +7,9 @@ import { Zap, Scissors, ShieldCheck, Sparkles, HeartHandshake } from 'lucide-rea
 import EyeAnimation from './EyeAnimation';
 
 const TOTAL_FRAMES = 300;
-const MOBILE_BREAKPOINT = 768;
+const MOBILE_BREAKPOINT = 768; // matches EyeAnimation's own mobile check
+
+// Static first-frame image shown on mobile instead of the animated canvas.
 const MOBILE_STATIC_FRAME = '/eye-animation/mobile/ezgif-frame-001.webp';
 
 export default function EyeScrollSection() {
@@ -21,6 +23,7 @@ export default function EyeScrollSection() {
   const isVisibleRef = useRef(true);
   const rafIdRef = useRef(null);
 
+  // null until measured on mount, to avoid a hydration mismatch flash.
   const [isMobile, setIsMobile] = useState(null);
 
   useEffect(() => {
@@ -33,6 +36,10 @@ export default function EyeScrollSection() {
   }, []);
 
   useEffect(() => {
+    // Desktop-only: drive the scroll-scrubbed canvas animation. On mobile
+    // (or before we've determined the breakpoint) we skip setting up any
+    // scroll listeners, IntersectionObserver, or frame-loading work at all —
+    // mobile just renders a single static image below, no 300-frame preload.
     if (isMobile !== false) return;
 
     const updateScrollProgress = () => {
@@ -181,6 +188,7 @@ export default function EyeScrollSection() {
     </div>
   );
 
+  // ---- MOBILE: static hero, no canvas, no 300-frame preload, no scroll JS ----
   if (isMobile === true) {
     return (
       <section
@@ -209,11 +217,12 @@ export default function EyeScrollSection() {
     );
   }
 
+  // ---- Not yet determined (first paint) or DESKTOP: full scroll animation ----
   return (
     <section
       ref={containerRef}
       id="hero-animation"
-      className="relative w-full h-[380vh] sm:h-[420vh] bg-black transform-gpu"
+      className="relative w-full h-[220vh] sm:h-[260vh] bg-black transform-gpu"
     >
       <div className="sticky top-0 h-screen sm:h-[100dvh] w-full overflow-hidden bg-black">
 
